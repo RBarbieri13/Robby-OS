@@ -1033,3 +1033,232 @@ button[disabled],
     0 18px 40px -10px rgba(15,22,36,0.14);
   border-radius: 10px;
 }
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   v6 · POLISH PASS 2 — hero color integration + email density
+   ═════════════════════════════════════════════════════════════════════ */
+
+
+/* ─────────── Kanban hero headers — polished pastels ───────────
+   Previous state: saturated tailwind-500 primaries on white text.
+   New state: soft desaturated tints (oklch ~94% l, ~0.06 c) with
+   dark-ink text. Project color still reads (hue preserved) but the
+   palette integrates with the warm-ivory / white / lavender pane
+   system instead of fighting it. */
+
+[data-theme="light"] .proj-hero {
+  /* Flat pastel fill — no dark radial gradient on top, no lift shadow */
+  background:
+    linear-gradient(180deg,
+      oklch(from var(--proj-bg) 95% calc(c * 0.35) h),
+      oklch(from var(--proj-bg) 91% calc(c * 0.5)  h));
+  color: var(--text-0);
+  min-height: 84px;
+  box-shadow:
+    inset 0 0 0 1.5px oklch(from var(--proj-bg) 78% calc(c * 0.45) h),
+    0 1px 2px rgba(15, 22, 36, 0.03),
+    0 3px 10px -4px rgba(15, 22, 36, 0.08);
+  text-shadow: none;
+}
+[data-theme="light"] .proj-hero::before,
+[data-theme="light"] .proj-hero::after {
+  display: none;
+}
+[data-theme="light"] .proj-hero .ph-name {
+  color: oklch(from var(--proj-bg) 32% calc(c * 0.9) h);
+  text-shadow: none;
+  letter-spacing: -0.018em !important;
+}
+[data-theme="light"] .proj-hero .ph-name .sw {
+  background: oklch(from var(--proj-bg) 55% c h);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+[data-theme="light"] .proj-hero .ph-trend {
+  color: oklch(from var(--proj-bg) 38% calc(c * 0.9) h);
+  opacity: 0.85;
+}
+[data-theme="light"] .proj-hero .ph-meta {
+  color: oklch(from var(--proj-bg) 38% calc(c * 0.7) h);
+  opacity: 0.75;
+}
+[data-theme="light"] .proj-hero .ph-meta b {
+  color: oklch(from var(--proj-bg) 30% c h);
+}
+[data-theme="light"] .proj-hero .ph-stat {
+  color: oklch(from var(--proj-bg) 28% c h) !important;
+}
+[data-theme="light"] .proj-hero .ph-stat small {
+  color: oklch(from var(--proj-bg) 40% calc(c * 0.8) h);
+  opacity: 0.85;
+}
+[data-theme="light"] .proj-hero .ph-spark polyline {
+  stroke: oklch(from var(--proj-bg) 45% c h) !important;
+}
+[data-theme="light"] .proj-hero .ph-spark circle {
+  fill: oklch(from var(--proj-bg) 40% c h) !important;
+}
+[data-theme="light"] .proj-hero .ph-due-bar {
+  background: oklch(from var(--proj-bg) 88% calc(c * 0.3) h);
+  box-shadow: inset 0 1px 0 rgba(15,22,36,0.06);
+}
+[data-theme="light"] .proj-hero .ph-due-fill {
+  background: oklch(from var(--proj-bg) 48% c h);
+}
+[data-theme="light"] .proj-hero .ph-due-label {
+  color: oklch(from var(--proj-bg) 38% calc(c * 0.8) h);
+  opacity: 0.85;
+}
+[data-theme="light"] .proj-hero.health-warn {
+  box-shadow:
+    inset 0 0 0 1.5px oklch(65% 0.15 55),
+    0 1px 2px rgba(15, 22, 36, 0.03),
+    0 3px 10px -4px rgba(15, 22, 36, 0.08);
+}
+[data-theme="light"] .proj-hero:hover { filter: brightness(1.02); }
+
+
+/* ─────────── Email AI Triage hero — polished ───────────
+   Swap the bright blue/violet gradient for a subtle lavender tint
+   that matches the email rail pane. Dark ink, crisp meta. */
+
+[data-theme="light"] .email-hero {
+  background: oklch(97% 0.012 285);
+  color: var(--text-0);
+  border: 1.5px solid oklch(86% 0.02 285);
+  box-shadow: none;
+  padding: 10px 12px;
+  margin: 8px 10px 6px;
+}
+[data-theme="light"] .email-hero::before,
+[data-theme="light"] .email-hero::after { display: none; }
+
+[data-theme="light"] .email-hero .eh-label {
+  color: oklch(42% 0.06 285);
+  opacity: 0.9;
+}
+[data-theme="light"] .email-hero .eh-big {
+  color: var(--text-0);
+  font-size: 30px !important;
+}
+[data-theme="light"] .email-hero .eh-sub {
+  color: var(--text-3);
+  opacity: 1;
+}
+[data-theme="light"] .email-hero .eh-stat {
+  background: #fff;
+  border: 1px solid oklch(88% 0.018 285);
+  backdrop-filter: none;
+  color: var(--text-1);
+  padding: 4px 8px;
+}
+[data-theme="light"] .email-hero .eh-stat-num { color: var(--text-0); }
+[data-theme="light"] .email-hero .eh-stat-lbl {
+  color: var(--text-3);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+[data-theme="light"] .email-hero .eh-stat.urgent {
+  background: oklch(95% 0.04 25);
+  border-color: oklch(80% 0.12 25);
+  color: oklch(40% 0.17 25);
+}
+[data-theme="light"] .email-hero .eh-stat.urgent .eh-stat-num { color: oklch(45% 0.2 25); }
+
+
+/* ─────────── Email items — max density ───────────
+   Tighten padding, bump snippet to 2 lines, cap quick-replies to
+   single scrollable row. Net effect: urgent items shrink, regular
+   items gain usable snippet preview with same or less total height. */
+
+.email-item-v2 {
+  padding: 6px 10px 7px !important;
+  gap: 7px !important;
+  border-bottom: 1px solid var(--hair) !important;
+}
+.email-item-v2 .ei-main {
+  gap: 1px !important;
+}
+.email-item-v2 .ei-line1 { line-height: 1.18; margin-bottom: 1px; }
+.email-item-v2 .ei-snip-tight {
+  display: -webkit-box !important;           /* required for line-clamp */
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;          /* 2-line snippet — the ask */
+  line-clamp: 2;
+  line-height: 1.32 !important;
+  font-size: 12px !important;
+  color: var(--text-3);
+  white-space: normal !important;            /* beat v2's nowrap */
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.64em;
+  min-height: 2.64em;                        /* reserve space so dense rows align */
+}
+.email-item-v2 .ei-chips-tight {
+  min-height: 16px !important;
+  gap: 4px !important;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  padding-top: 1px;
+}
+.email-item-v2 .ei-chip,
+.email-item-v2 .sent-chip {
+  padding: 2px 6px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+.email-item-v2 .ei-via {
+  font-size: 10px !important;
+  font-weight: 600;
+  padding-left: 4px;
+}
+
+/* Quick replies — single scrollable row, no wrap blow-up */
+.email-item-v2 .ei-quickreplies {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  gap: 4px !important;
+  margin-top: 2px;
+  padding-bottom: 1px;
+}
+.email-item-v2 .ei-quickreplies::-webkit-scrollbar { display: none; }
+.email-item-v2 .qr-chip {
+  padding: 2px 8px !important;
+  font-size: 10.5px !important;
+  line-height: 1.15 !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Email group header — tighter */
+.email-group .egrp-head {
+  padding: 6px 10px !important;
+  font-size: 11.5px;
+}
+
+/* Avatar: shrink slightly so 28px instead of 32px — every pixel counts */
+.email-item-v2 .ei-avatar {
+  width: 30px !important;
+  height: 30px !important;
+  font-size: 10.5px !important;
+}
+.email-item-v2 .ei-avatar-mark {
+  width: 14px !important;
+  height: 14px !important;
+  right: -2px !important;
+  bottom: -2px !important;
+}
+.email-item-v2 .ei-avatar-mark svg { width: 10px !important; height: 10px !important; }
+
+/* Account pills — a hair shorter to give content more room */
+.email-accounts-big { padding: 6px 10px !important; gap: 6px !important; }
+.email-accounts-big .acct-pill {
+  height: 32px !important;
+  font-size: 12.5px !important;
+}
+
+/* Sentiment chips in chip-row: tracked-uppercase is fine but tighter */
+.email-item-v2 .sent-chip { letter-spacing: 0.05em !important; }
