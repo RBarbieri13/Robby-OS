@@ -160,7 +160,7 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
   const openTasks = (pid) => (TASKS[pid] || []).filter(t => !t.done).length;
 
   return (
-    <div className="pane kanban-wrap" data-screen-label="Cockpit Grid">
+    <div className="pane kanban-wrap" data-screen-label="Cockpit Grid" data-empty={cols === 0 ? "true" : "false"}>
       <div className="pane-head">
         <I.Grip className="grip icon-sm" />
         <I.Grid className="icon-sm" style={{ color: "var(--text-2)" }} />
