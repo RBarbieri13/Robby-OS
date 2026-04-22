@@ -107,17 +107,17 @@ function App() {
     window.addEventListener("mouseup", onUp);
   };
 
-  // Kanban row heights (comfortable density): hero ~148, each open row ~150,
-  // each collapsed row ~38. Plus pane-head 36 + paddings 24. We pin the
-  // kanban track to a pixel height computed from the open-row count so the
-  // agenda naturally grows as rows collapse. Manual drag via kanbanFrac
-  // always wins when set.
+  // Kanban row heights (comfortable density): hero ~56 (slim rectangle),
+  // each open row ~160, each collapsed row ~38. Plus pane-head 36 +
+  // paddings 24. We pin the kanban track to a pixel height computed
+  // from the open-row count so the agenda naturally grows as rows
+  // collapse. Manual drag via kanbanFrac always wins when set.
   const TOTAL_ROWS = 4;
   const openRows = TOTAL_ROWS - collapsedRows.length;
   const kanbanPx =
     36  /* pane-head */ +
-    148 /* hero strip */ +
-    openRows * 150 +
+    60  /* slim hero strip */ +
+    openRows * 160 +
     collapsedRows.length * 38 +
     28  /* add-row footer */ +
     16  /* paddings */;
