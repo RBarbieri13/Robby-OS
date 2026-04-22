@@ -1,0 +1,705 @@
+/* ─────────────────────────────────────────────────────────────────────
+   Robby OS · Cockpit — Light-mode polish & layout refinements (v6)
+
+   Loaded LAST, so everything here wins.
+
+   Sections:
+     1. Light-mode palette: contrasting component backgrounds
+     2. Thicker borders + layered shadows per pane
+     3. Project hero type scale (larger Work/Personal/House names)
+     4. Condensed SubBar + Filters/View popover
+     5. Condensed AI Brief strip + expanded drawer
+     6. Email: bigger account pills w/ brand marks, new item v2 layout
+     7. Kanban auto-resize when all rows collapse
+   ───────────────────────────────────────────────────────────────────── */
+
+
+/* ═════════════════════════════ 1. PALETTE ═════════════════════════════ */
+
+[data-theme="light"] {
+  /* Canvas (outermost gutters/behind panels) */
+  --bg-canvas: oklch(93% 0.008 260);          /* cool, visibly darker than panes */
+
+  /* Sidebar — warm off-white, subtly distinct from main */
+  --bg-rail:   oklch(96.5% 0.010 80);          /* warm ivory */
+
+  /* Panes */
+  --bg-1:      #ffffff;                         /* kanban / top surfaces */
+  --bg-2:      oklch(98.2% 0.004 260);          /* card on pane (neutral) */
+  --bg-3:      oklch(95.8% 0.006 260);          /* elevated / hover */
+  --bg-4:      oklch(93.5% 0.008 260);          /* input / deep hover */
+  --bg-5:      oklch(91% 0.010 260);            /* chip bg */
+
+  /* Hairlines — thicker + visible */
+  --hair:      oklch(89% 0.010 260);
+  --hair-2:    oklch(83% 0.012 260);            /* primary component border */
+  --hair-3:    oklch(74% 0.015 260);            /* emphasized/active edge */
+
+  --text-0:    #060810;
+  --text-1:    #11151c;
+  --text-2:    #323945;
+  --text-3:    #555d6b;
+  --text-4:    #7e8696;
+  --text-5:    #b0b6c2;
+
+  --link:      #1d4ed8;
+
+  /* Custom per-pane backgrounds for light mode */
+  --pane-kanban-bg:  #ffffff;
+  --pane-agenda-bg:  oklch(98.2% 0.008 230);    /* very faint cool tint */
+  --pane-email-bg:   oklch(98% 0.008 285);      /* very faint lavender */
+  --pane-topbar-bg:  oklch(96.5% 0.006 260);    /* warm grey */
+  --pane-subbar-bg:  oklch(98% 0.005 260);      /* lighter than topbar */
+  --pane-status-bg:  oklch(96% 0.008 260);
+
+  /* Layered shadow tokens */
+  --shadow-pane:
+    0 0 0 2px var(--hair-2),
+    0 1px 2px rgba(15, 22, 36, 0.04),
+    0 4px 14px -6px rgba(15, 22, 36, 0.10),
+    0 12px 24px -12px rgba(15, 22, 36, 0.08);
+
+  --shadow-pane-hover:
+    0 0 0 2px var(--hair-3),
+    0 2px 4px rgba(15, 22, 36, 0.06),
+    0 6px 18px -6px rgba(15, 22, 36, 0.14);
+}
+
+
+/* ═════════════════════════════ 2. CHROME ═════════════════════════════ */
+
+/* Canvas behind panels shows through the gutter — gives each pane a visible
+   moat and makes the borders read. */
+[data-theme="light"] body,
+[data-theme="light"] html { background: var(--bg-canvas); }
+
+[data-theme="light"] .app {
+  background: var(--bg-canvas);
+  padding: 0;
+}
+
+/* Sidebar — warm off-white, right edge is a thick border */
+[data-theme="light"] .sidebar {
+  background: var(--bg-rail);
+  border-right: 2px solid var(--hair-2);
+  box-shadow: 1px 0 0 rgba(15,22,36,0.02);
+}
+
+/* Main column — the overall working area sits on canvas, panes float on top */
+[data-theme="light"] .main { background: var(--bg-canvas); }
+
+/* Topbar & Subbar — distinct from main, borders below */
+[data-theme="light"] .topbar {
+  background: var(--pane-topbar-bg);
+  border-bottom: 2px solid var(--hair-2);
+}
+[data-theme="light"] .subbar {
+  background: var(--pane-subbar-bg);
+  border-bottom: 2px solid var(--hair-2);
+}
+
+/* Insights strip — own tint, clearly separate */
+[data-theme="light"] .insights-strip {
+  background: oklch(99% 0.014 85);              /* creamy warm */
+  border-bottom: 2px solid var(--hair-2);
+  box-shadow: 0 1px 2px rgba(15,22,36,0.03);
+}
+
+/* Workspace canvas between panes */
+[data-theme="light"] .workspace { background: var(--bg-canvas); }
+
+/* Kanban pane — white + thick border + shadow */
+[data-theme="light"] .kanban-wrap,
+[data-theme="light"] .pane.kanban-wrap {
+  background: var(--pane-kanban-bg);
+  border: 2px solid var(--hair-2);
+  border-radius: 10px;
+  margin: 6px 6px 0 6px;
+  box-shadow: var(--shadow-pane);
+}
+
+/* Agenda pane — subtle cool tint, thick border, shadow */
+[data-theme="light"] .pane.agenda,
+[data-theme="light"] .agenda {
+  background: var(--pane-agenda-bg);
+  border: 2px solid var(--hair-2);
+  border-radius: 10px;
+  margin: 0 6px 6px 6px;
+  box-shadow: var(--shadow-pane);
+}
+
+/* Email rail — lavender tint, thick border, shadow */
+[data-theme="light"] .email-rail {
+  background: var(--pane-email-bg);
+  border: 2px solid var(--hair-2);
+  border-radius: 10px;
+  margin: 6px 6px 6px 0;
+  box-shadow: var(--shadow-pane);
+}
+
+/* Status bar */
+[data-theme="light"] .statusbar {
+  background: var(--pane-status-bg);
+  border-top: 2px solid var(--hair-2);
+}
+
+/* Pane heads sit inside panes — normalize their border so they don't double up */
+[data-theme="light"] .pane-head {
+  border-bottom: 1.5px solid var(--hair-2);
+  background: transparent;
+}
+
+/* Cards inside panes need clear separation from the pane bg */
+[data-theme="light"] .tcard,
+[data-theme="light"] .card {
+  background: var(--bg-1);
+  border: 1.5px solid var(--hair);
+  box-shadow:
+    0 1px 2px rgba(15,22,36,0.04),
+    0 2px 6px -2px rgba(15,22,36,0.06);
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+[data-theme="light"] .tcard:hover,
+[data-theme="light"] .card:hover {
+  border-color: var(--hair-3);
+  box-shadow:
+    0 2px 4px rgba(15,22,36,0.06),
+    0 6px 14px -4px rgba(15,22,36,0.10);
+}
+
+/* Sidebar item hover — subtle */
+[data-theme="light"] .side-item:hover,
+[data-theme="light"] .side-proj:hover {
+  background: var(--bg-3);
+  border-radius: 6px;
+}
+[data-theme="light"] .side-item.active {
+  background: var(--bg-4);
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+
+/* ═════════════════════════ 3. PROJECT HEROES ═════════════════════════ */
+
+/* Larger, bolder project names — visible across dark AND light modes.
+   We override here because styles-v5-type.css used !important. */
+.proj-hero .ph-name,
+.ph-name {
+  font-size: 16px !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.15 !important;
+}
+.proj-hero .ph-meta,
+.ph-meta {
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+}
+.proj-hero .ph-meta b,
+.ph-meta b {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  margin-right: 4px !important;
+}
+
+/* Boost the big stat number even more so it reads as the anchor */
+.proj-hero .ph-stat {
+  font-size: 52px !important;
+}
+
+
+/* ═════════════════════════ 4. SUBBAR ═════════════════════════ */
+
+.subbar-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+/* Filter/View popover trigger — signal active state */
+.sb-filter-wrap { position: relative; }
+.sb-filter-wrap .btn.has-active { border-color: var(--link); color: var(--link); }
+.sb-filter-wrap .btn.primary {
+  background: var(--link);
+  color: #fff;
+  border-color: var(--link);
+}
+
+.sb-filter-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 320px;
+  padding: 10px;
+  background: var(--bg-1);
+  border: 2px solid var(--hair-2);
+  border-radius: 10px;
+  box-shadow:
+    0 4px 12px rgba(15,22,36,0.08),
+    0 18px 40px -10px rgba(15,22,36,0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+[data-theme="dark"] .sb-filter-pop {
+  background: var(--bg-2);
+  border-color: var(--hair-3);
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.4),
+    0 18px 40px -10px rgba(0,0,0,0.5);
+}
+
+.sbf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 28px;
+}
+.sbf-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.sbf-sep {
+  height: 1px;
+  background: var(--hair);
+  margin: 2px -2px;
+}
+.sbf-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.sbf-toggle input { margin: 0; cursor: pointer; }
+.sbf-hint {
+  margin-left: auto;
+  color: var(--text-4);
+  font-size: 11px;
+  font-weight: 400;
+}
+.sbf-row-foot { padding-top: 2px; }
+
+
+/* ═════════════════════════ 5. INSIGHTS STRIP ═════════════════════════ */
+
+.insights-compact {
+  padding: 6px 12px !important;
+  height: auto !important;         /* override fixed 34px from v3 */
+  min-height: 36px;
+  overflow: visible !important;    /* allow the expanded drawer to show */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.insights-compact.expanded { min-height: 84px; }
+.insights-compact .insights-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  padding-right: 8px;
+  border-right: 1px solid var(--hair-2);
+  margin-right: 4px;
+}
+.insights-compact .insights-badge .pulse {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ai);
+  box-shadow: 0 0 0 3px oklch(60% 0.19 25 / 0.18);
+}
+
+.insights-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--text-1);
+  flex-wrap: wrap;
+}
+.is-item { display: inline-flex; align-items: baseline; gap: 4px; }
+.is-item b { font-weight: 750; font-variant-numeric: tabular-nums; }
+.is-item.warn b { color: oklch(52% 0.18 45); }
+.is-item.hot b  { color: oklch(55% 0.22 25); }
+.is-sep { color: var(--text-4); }
+.is-next b { color: var(--link); font-variant-numeric: tabular-nums; }
+
+.is-expand-btn { padding: 3px 10px !important; font-size: 12px; }
+.is-replan     { padding: 4px 10px !important; font-weight: 600; }
+
+/* Expanded drawer — sits below the compact line on its own row */
+.insights-expanded {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 8px 4px 2px;
+  margin-top: 6px;
+  border-top: 1px dashed var(--hair-2);
+}
+
+
+/* ═════════════════════════ 6. EMAIL ═════════════════════════ */
+
+/* Bigger account pills with brand logos */
+.email-accounts-big {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hair-2);
+}
+.email-accounts-big .acct-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--hair-2);
+  background: var(--bg-1);
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 120ms ease, background 120ms ease, transform 120ms ease;
+}
+[data-theme="dark"] .email-accounts-big .acct-pill { background: var(--bg-2); }
+
+.email-accounts-big .acct-pill:hover {
+  border-color: var(--hair-3);
+  transform: translateY(-1px);
+}
+.email-accounts-big .acct-pill.active {
+  border-color: var(--link);
+  box-shadow: 0 0 0 3px oklch(60% 0.18 255 / 0.15);
+  background: oklch(98.5% 0.014 255);
+}
+[data-theme="dark"] .email-accounts-big .acct-pill.active {
+  background: oklch(28% 0.05 255);
+}
+.email-accounts-big .acct-pill.off { opacity: 0.55; }
+
+.email-accounts-big .acct-rail {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--acct-color, var(--text-4));
+}
+.email-accounts-big .acct-pill.all {
+  grid-column: 1 / 2;
+  padding: 0 12px;
+  border-style: solid;
+  background: var(--bg-3);
+}
+.email-accounts-big .acct-pill.all.active {
+  background: var(--link);
+  color: #fff;
+  border-color: var(--link);
+}
+
+.email-accounts-big .acct-mark {
+  display: inline-flex;
+  width: 22px; height: 22px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.email-accounts-big .acct-mark-all {
+  width: 22px; height: 22px;
+  color: inherit;
+}
+.email-accounts-big .acct-name { flex: 1; }
+.email-accounts-big .acct-badge {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--bg-4);
+  color: var(--text-2);
+  min-width: 22px;
+  text-align: center;
+}
+.email-accounts-big .acct-pill.active .acct-badge {
+  background: var(--link);
+  color: #fff;
+}
+.email-accounts-big .acct-pill.all.active .acct-badge {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+/* Email item v2 — same height target as before (~78–100px), better layout */
+.email-item-v2 {
+  display: grid !important;
+  grid-template-columns: 4px 36px 1fr auto !important;
+  align-items: flex-start;
+  gap: 8px !important;
+  padding: 8px 10px !important;
+  border-bottom: 1px solid var(--hair) !important;
+  background: transparent;
+  position: relative;
+}
+.email-item-v2:hover { background: var(--bg-2); }
+[data-theme="dark"] .email-item-v2:hover { background: var(--bg-3); }
+
+.email-item-v2 .ei-acctrail {
+  grid-column: 1;
+  width: 4px;
+  height: 100%;
+  background: var(--acct-color, var(--text-4));
+  border-radius: 2px;
+}
+
+.email-item-v2 .ei-avatar {
+  grid-column: 2;
+  width: 32px; height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--acct-color, var(--text-4));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  position: relative;
+  flex-shrink: 0;
+}
+.email-item-v2 .ei-avatar-mark {
+  position: absolute;
+  right: -3px; bottom: -3px;
+  width: 16px; height: 16px;
+  background: var(--bg-1);
+  border: 1.5px solid var(--hair-2);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+[data-theme="dark"] .email-item-v2 .ei-avatar-mark {
+  background: var(--bg-2);
+  border-color: var(--hair-3);
+}
+.email-item-v2 .ei-avatar-mark svg { width: 12px; height: 12px; }
+
+.email-item-v2 .ei-main {
+  grid-column: 3 / -1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.email-item-v2 .ei-line1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.25;
+}
+.email-item-v2 .ei-from {
+  font-weight: 700;
+  color: var(--text-0);
+  flex-shrink: 0;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.email-item-v2.unread .ei-from { font-weight: 750; }
+.email-item-v2 .ei-subj-inline {
+  color: var(--text-1);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.email-item-v2.unread .ei-subj-inline { font-weight: 650; color: var(--text-0); }
+.email-item-v2 .ei-time {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.email-item-v2 .ei-dot-unread {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--link);
+  flex-shrink: 0;
+}
+
+.email-item-v2 .ei-snip-tight {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text-3);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}
+
+.email-item-v2 .ei-chips-tight {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  min-height: 18px;
+}
+.email-item-v2 .ei-chip,
+.email-item-v2 .sent-chip {
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+.email-item-v2 .ei-chip {
+  background: var(--bg-3);
+  color: var(--text-2);
+}
+.email-item-v2 .sent-chip.sent-urgent   { background: oklch(92% 0.08 25); color: oklch(40% 0.18 25); letter-spacing: 0.08em; }
+.email-item-v2 .sent-chip.sent-blocking { background: oklch(92% 0.08 45); color: oklch(40% 0.18 45); letter-spacing: 0.08em; }
+[data-theme="dark"] .email-item-v2 .sent-chip.sent-urgent   { background: oklch(32% 0.10 25); color: oklch(88% 0.10 25); }
+[data-theme="dark"] .email-item-v2 .sent-chip.sent-blocking { background: oklch(32% 0.10 45); color: oklch(88% 0.10 45); }
+
+.email-item-v2 .ei-via {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-4);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Quick replies — compact */
+.email-item-v2 .ei-quickreplies {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.email-item-v2 .qr-chip {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: oklch(96% 0.014 260);
+  border: 1px solid var(--hair-2);
+  color: var(--text-1);
+  cursor: pointer;
+}
+[data-theme="dark"] .email-item-v2 .qr-chip {
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+
+/* Hover action rail — absolute so it doesn't expand item height */
+.email-item-v2 .ei-actions {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  background: var(--bg-1);
+  border: 1px solid var(--hair-2);
+  border-radius: 6px;
+  padding: 2px;
+  box-shadow: 0 2px 6px rgba(15,22,36,0.08);
+}
+[data-theme="dark"] .email-item-v2 .ei-actions {
+  background: var(--bg-3);
+  border-color: var(--hair-3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.email-item-v2:hover .ei-actions { opacity: 1; }
+/* Hide time on hover so the action rail doesn't overlap it */
+.email-item-v2:hover .ei-time { visibility: hidden; }
+
+
+/* ═════════════════════════ 7. KANBAN AUTO-RESIZE ═════════════════════════ */
+
+/* When a kanban row is collapsed, clamp the kgrid-body to a thin summary row.
+   Combined with the grid-template-rows change in v2-app.jsx, the agenda
+   naturally absorbs the freed space. */
+.krow.collapsed .kgrid-body { min-height: 0; }
+
+/* Ensure kanban-wrap never fights the grid track — if the track is `auto`,
+   let the content determine height. */
+.center-col .kanban-wrap { align-self: start; }
+.center-col .pane.agenda { align-self: stretch; min-height: 0; }
+
+
+/* ═════════════════════════ Misc light polish ═════════════════════════ */
+
+/* Buttons: defined borders in light mode */
+[data-theme="light"] .btn {
+  border: 1.5px solid var(--hair-2);
+  background: var(--bg-1);
+}
+[data-theme="light"] .btn:hover {
+  border-color: var(--hair-3);
+  background: var(--bg-2);
+}
+[data-theme="light"] .btn.primary {
+  background: var(--link);
+  border-color: var(--link);
+  color: #fff;
+}
+[data-theme="light"] .btn.primary:hover { filter: brightness(1.05); }
+
+/* Segmented controls: clearer borders */
+[data-theme="light"] .seg {
+  background: var(--bg-2);
+  border: 1.5px solid var(--hair-2);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+[data-theme="light"] .seg-item.active {
+  background: var(--bg-1);
+  box-shadow: 0 1px 2px rgba(15,22,36,0.10);
+  border: 1px solid var(--hair);
+  font-weight: 650;
+}
+
+/* Inspector & palette scrims in light get a soft tint */
+[data-theme="light"] .inspector-scrim,
+[data-theme="light"] .palette-scrim {
+  background: rgba(15, 22, 36, 0.28);
+  backdrop-filter: blur(3px);
+}
+[data-theme="light"] .inspector,
+[data-theme="light"] .palette {
+  border: 2px solid var(--hair-2);
+  box-shadow:
+    0 8px 24px rgba(15,22,36,0.12),
+    0 24px 64px -12px rgba(15,22,36,0.18);
+}

@@ -1,0 +1,295 @@
+/* ─────────────────────────────────────────────────────────────
+   TYPOGRAPHY PASS — Robby OS Cockpit
+   Strategy:
+   • Inter for all UI — turn on cv11 (single-story a), cv02, ss01,
+     ss03, tabular nums. This is what makes Inter look premium.
+   • Instrument Serif for editorial accents (big stat numbers,
+     brand name) — brings personality to an otherwise neutral grid.
+   • JetBrains Mono for dense numeric data (times, counts, IDs).
+   • Explicit type scale with named tokens so hierarchy is consistent.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Type families */
+  --font-ui:      'Inter', -apple-system, system-ui, sans-serif;
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Georgia', serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* OpenType feature sets */
+  --ff-ui:   "cv11", "cv02", "ss01", "ss03", "cv05", "ss02";
+  --ff-num:  "tnum", "cv11", "ss01";
+  --ff-caps: "cpsp", "ss01";
+
+  /* Type scale (rem-derived but kept in px for precision at dashboard density) */
+  --fs-micro:   9.5px;    /* status bar */
+  --fs-mini:   10.5px;    /* uppercase labels, eyebrows */
+  --fs-small:  11px;      /* meta, pills, chips */
+  --fs-body:   12px;      /* standard body */
+  --fs-body-lg:13px;      /* row subjects */
+  --fs-head:   14px;      /* pane headers, card titles */
+  --fs-title:  16px;      /* section titles */
+  --fs-lead:   18px;      /* call-outs */
+  --fs-stat-s: 22px;      /* small stat */
+  --fs-stat-m: 32px;      /* medium stat (project card) */
+  --fs-stat-l: 48px;      /* large stat */
+  --fs-display:56px;      /* hero display */
+
+  /* Line heights */
+  --lh-tight:  1.06;
+  --lh-snug:   1.18;
+  --lh-body:   1.38;
+  --lh-loose:  1.5;
+
+  /* Letter spacing */
+  --ls-cap:    0.09em;    /* uppercase micro labels */
+  --ls-cap-tight: 0.055em;/* uppercase 11-12px */
+  --ls-display: -0.028em; /* display serif */
+  --ls-head:   -0.012em;  /* 14-16px sans */
+  --ls-body:   -0.003em;  /* 12-13px sans */
+  --ls-tiny:    0.008em;   /* small text opens up */
+
+  /* Weights */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-black:    800;
+}
+
+/* ─── Global resets ─── */
+html, body, input, button, select, textarea {
+  font-family: var(--font-ui);
+  font-feature-settings: var(--ff-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+  color: var(--text-1);
+}
+
+/* ─── Display tokens ─── */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-display);
+}
+.t-stat-l {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-stat-l);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-display);
+  font-feature-settings: "tnum", "lnum";
+}
+.t-stat-m {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-stat-m);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum", "lnum";
+}
+
+/* Project card big number → Instrument Serif (higher specificity to beat v2) */
+.proj-hero .ph-stat,
+.ph-stat {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  font-size: 46px !important;
+  line-height: 0.88 !important;
+  letter-spacing: -0.03em !important;
+  font-feature-settings: "tnum", "lnum" !important;
+}
+.proj-hero .ph-stat small,
+.ph-stat small {
+  font-family: var(--font-ui) !important;
+  font-weight: 700 !important;
+  font-size: 9px !important;
+  letter-spacing: 0.11em !important;
+  text-transform: uppercase;
+  margin-top: 6px !important;
+}
+.ph-name {
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.012em !important;
+}
+.ph-meta {
+  font-size: 9px !important;
+  letter-spacing: 0.1em !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+}
+.ph-meta b {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+.ph-footer, .ph-foot, .ph-sub {
+  font-size: 9.5px !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 600 !important;
+}
+
+/* AI insights strip */
+.insights-badge span:first-of-type {
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 13px !important;
+  letter-spacing: -0.005em !important;
+}
+.insight .ins-k {
+  font-size: 9.5px !important;
+  letter-spacing: 0.11em !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+}
+.insight .ins-v {
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.003em !important;
+}
+.insight .ins-v b {
+  font-family: var(--font-display) !important;
+  font-weight: 400 !important;
+  font-size: 15px !important;
+  letter-spacing: -0.015em !important;
+  font-feature-settings: "tnum", "lnum" !important;
+}
+
+/* ─── Eyebrow / micro labels ─── */
+.cap {
+  font-size: var(--fs-mini);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-cap-tight);
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-feature-settings: var(--ff-caps);
+}
+.cap-tight {
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ─── Sharpen existing pane/card heads ─── */
+.pane-head .title { letter-spacing: -0.006em; font-weight: 650; }
+.pane-head .badge { letter-spacing: 0.055em; font-feature-settings: var(--ff-caps); }
+
+.pc-name {
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.01em !important;
+}
+.pc-stat-label {
+  font-size: 9.5px !important;
+  letter-spacing: 0.12em !important;
+  font-weight: 700 !important;
+}
+
+/* Task / note / card subject */
+.title-text {
+  font-size: 12.5px !important;
+  font-weight: 650 !important;
+  line-height: 1.32 !important;
+  letter-spacing: -0.008em !important;
+}
+.card-meta, .card-meta span {
+  font-size: 10px !important;
+  font-weight: 500 !important;
+}
+.card-meta .chip {
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+}
+.note-snippet {
+  font-size: 11px !important;
+  line-height: 1.44 !important;
+  color: var(--text-3);
+  letter-spacing: -0.002em !important;
+}
+
+/* Email list items */
+.ei-from {
+  font-size: 11.5px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.005em !important;
+}
+.ei-acctname {
+  font-size: 9.5px !important;
+  letter-spacing: 0.02em !important;
+  font-weight: 500 !important;
+  color: var(--text-4);
+}
+.ei-subject {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.006em !important;
+  line-height: 1.32 !important;
+}
+.ei-snippet, .ei-preview {
+  font-size: 11px !important;
+  line-height: 1.42 !important;
+  color: var(--text-3);
+  font-weight: 400 !important;
+}
+.ei-time {
+  font-family: var(--font-mono);
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--text-4);
+}
+
+/* Agenda events */
+.ev-title { font-size: 10.5px !important; font-weight: 650 !important; letter-spacing: -0.003em !important; }
+.ev-time  { font-family: var(--font-mono); font-size: 9px !important; font-weight: 500 !important; letter-spacing: 0 !important; }
+
+/* Numbers everywhere */
+.num, time, .time, .hour, .stat-num {
+  font-family: var(--font-mono);
+  font-feature-settings: var(--ff-num);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Top bar brand */
+.brand-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: -0.015em;
+}
+
+/* Subbar toolbar labels — tighter */
+.toolbar .seg, .toolbar .chip, .sub-bar .chip {
+  letter-spacing: -0.002em;
+}
+
+/* Status bar — slightly looser for small text */
+.status-bar, .status-bar * {
+  font-feature-settings: var(--ff-ui);
+}
+.status-bar .sb-grp {
+  letter-spacing: 0.004em;
+}
+
+/* ─── Richer hierarchy: dim meta ─── */
+.meta, .tk-meta, .em-time {
+  color: var(--text-4);
+}
+
+/* ─── Light-mode font smoothing nudge ─── */
+[data-theme="light"] body { -webkit-font-smoothing: antialiased; }
