@@ -1,5 +1,8 @@
 # Robby OS — Cockpit v2
 
+**Live:** https://rbarbieri13.github.io/Robby-OS/
+**Repo:** https://github.com/RBarbieri13/Robby-OS
+
 Standalone implementation of the Cockpit v2 design from the Claude Design handoff
 (`robby-os` bundle).
 
