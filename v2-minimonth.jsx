@@ -12,9 +12,9 @@ function MiniMonth({ currentDay = 22 }) {
   return (
     <div className="mini-month">
       <div className="mm-head">
-        <button className="mm-nav"><I.ChevL className="icon-xs" /></button>
+        <button className="mm-nav" aria-label="Previous month" title="Previous month"><I.ChevL className="icon-xs" /></button>
         <span className="mm-title">April 2026</span>
-        <button className="mm-nav"><I.ChevR className="icon-xs" /></button>
+        <button className="mm-nav" aria-label="Next month" title="Next month"><I.ChevR className="icon-xs" /></button>
       </div>
       <div className="mm-grid mm-dow">
         {["S","M","T","W","T","F","S"].map((d, i) => <span key={i}>{d}</span>)}

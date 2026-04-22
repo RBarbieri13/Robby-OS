@@ -57,14 +57,57 @@ Design `robby-os` handoff bundle. Runs as pure static HTML/CSS/JS (no build).
 - Prefers condensed/aggregated controls over busy horizontal bars.
 - Prefers brand logos over generic text labels for multi-account contexts.
 
+## Polish pass (v6 second half — senior-dev audit)
+
+Applied as a single pass at the bottom of `styles-v6-light.css` plus targeted
+aria-label additions in JSX:
+
+- **Topbar search** never wraps anymore — `nowrap + overflow: hidden + ellipsis`
+  on placeholder and hint spans. Locked at ~30px.
+- **Unified `:focus-visible` ring** across buttons, segmented controls,
+  side-items, cards, pills, palette items. Double-ring style
+  (`canvas offset + accent halo`) reads on every pane background.
+- **`prefers-reduced-motion` respected** — transitions/animations clamp to
+  instant, `.pulse` dot halo removed.
+- **Sidebar** got a right-edge drop shadow (matches other pane elevation),
+  and the active-item contrast was bumped with an inset 2px blue bar + bolder
+  bg. Resolves the old follow-up.
+- **Status bar** direct children locked to consistent 15–20px heights;
+  `.sb-chip` and `.seg.mini` pinned to 20px with 1-line-height seg-items.
+- **Email item** grid cleaned up to `4px 36px minmax(0, 1fr)` — "via Gmail"
+  no longer collapsed. Chip row wraps cleanly.
+- **Compact density** tightens email item padding, line-heights, avatar size,
+  and `.eh-big`. Resolves the old follow-up.
+- **Task/note/event/goal titles** use 2-line clamp with ellipsis — no more
+  mid-word clips.
+- **Scrollbars** unified to 8px thin with rounded thumbs in `--hair-2` that
+  darken on hover. Applied to sidebar, kanban, agenda, email, palette,
+  inspector, and sb-filter-pop.
+- **Cursor affordances** — every clickable cursor is `pointer`; the topbar
+  search shows `text`.
+- **Selection color** matches the accent and reads on all pane tints.
+- **Today column in the agenda** gets a subtle light-blue tint.
+- **`now-line`** in the agenda uses the accent blue.
+- **Disabled state** tokenized via `button[disabled]` and `.is-disabled`.
+- **`aria-label` + `title`** added to all icon-only buttons (7 total):
+  mm-nav (×2), sb-caret, chev-btn (×4).
+- **CSS/JSX cache-busters bumped** — `?v=4` on styles-v6-light,
+  `?v=2` on all JSX sources to force fresh loads in Chromium.
+
+Post-polish interaction smoke test (all pass): `⌘K` opens/closes palette,
+`Esc` closes, row-collapse shrinks kanban + grows agenda, insights "More"
+expands, SubBar "View" popover opens.
+
 ## Known follow-ups (not blocking, can be done later)
 
-- The light-mode sidebar's brand mark + top items could use a touch more
-  contrast; current active-item bg (`--bg-4`) is subtle.
-- If the user changes density, `is-compact` mode may want tighter line-height
-  on email items.
+- Card-type clickables (`.tcard`, `.email-item-v2`, `.side-item`) aren't
+  keyboard-reachable — they rely on `onClick` on `<div>`s. If/when we want
+  full keyboard traversal, add `role="button"` + `tabIndex={0}` + keydown
+  handlers. The `⌘K` palette + `G`-prefix shortcuts cover primary nav today.
 - The filter popover's state (`groupBy`) is local to SubBar; if we ever wire
   up actual grouping in the kanban, lift that state into App.
+- Inspector scrim blur is 4px — consider reducing on reduced-motion
+  preference in a future pass.
 
 ## Run
 

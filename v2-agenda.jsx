@@ -82,11 +82,11 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
         <span className="title">Weekly Agenda</span>
         <span className="title-sub">· 7-day · 6a–10p</span>
         <span className="count">{visibleEvents.length} events · {visibleTasks.length} drops</span>
-        <button className="chev-btn" onClick={onPrev} style={{ marginLeft: 6 }}>
+        <button className="chev-btn" onClick={onPrev} style={{ marginLeft: 6 }} aria-label="Previous week" title="Previous week">
           <I.ChevL className="icon-sm" />
         </button>
         <span style={{ fontSize: 11.5, color: "var(--text-1)", fontWeight: 600 }}>{weekLabel}</span>
-        <button className="chev-btn" onClick={onNext}><I.ChevR className="icon-sm" /></button>
+        <button className="chev-btn" onClick={onNext} aria-label="Next week" title="Next week"><I.ChevR className="icon-sm" /></button>
 
         <div className="spacer" />
         <div className="seg">

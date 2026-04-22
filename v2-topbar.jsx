@@ -53,7 +53,7 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
             <I.Plus className="icon-sm" />
             Quick add
           </button>
-          <button className="sb-caret" onClick={() => setAddOpen(o => !o)}>
+          <button className="sb-caret" onClick={() => setAddOpen(o => !o)} aria-label="More quick-add options" aria-haspopup="menu" aria-expanded={addOpen}>
             <I.ChevD className="icon-xs" />
           </button>
           {addOpen ? (
@@ -189,9 +189,9 @@ function SubBar({ projectFilters, setProjectFilters, colorBy, setColorBy, weekLa
   return (
     <div className="subbar subbar-compact">
       <div className="week-nav">
-        <button className="chev-btn" onClick={onPrev}><I.ChevL className="icon-sm" /></button>
+        <button className="chev-btn" onClick={onPrev} aria-label="Previous week" title="Previous week"><I.ChevL className="icon-sm" /></button>
         <span className="date">{weekLabel}</span>
-        <button className="chev-btn" onClick={onNext}><I.ChevR className="icon-sm" /></button>
+        <button className="chev-btn" onClick={onNext} aria-label="Next week" title="Next week"><I.ChevR className="icon-sm" /></button>
         <button className="btn" style={{ padding: "3px 9px", marginLeft: 6 }} onClick={onToday}>Today</button>
       </div>
 

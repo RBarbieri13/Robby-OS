@@ -450,7 +450,7 @@
 /* Email item v2 — same height target as before (~78–100px), better layout */
 .email-item-v2 {
   display: grid !important;
-  grid-template-columns: 4px 36px 1fr auto !important;
+  grid-template-columns: 4px 36px minmax(0, 1fr) !important;
   align-items: flex-start;
   gap: 8px !important;
   padding: 8px 10px !important;
@@ -702,4 +702,334 @@
   box-shadow:
     0 8px 24px rgba(15,22,36,0.12),
     0 24px 64px -12px rgba(15,22,36,0.18);
+}
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   v6 · POLISH PASS (senior-dev audit follow-up)
+   Tiny details & last-mile refinements. Everything here was flagged in
+   the blanket formatting audit.
+   ═════════════════════════════════════════════════════════════════════ */
+
+
+/* ───────── Topbar search: never wrap ───────── */
+/* The search placeholder + hint were wrapping at narrow viewports
+   producing an 86-px-tall search field. Lock to single line with a
+   hard clip + ellipsis so the topbar stays 44px even when cramped. */
+.topbar .search {
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.topbar .search .search-placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.topbar .search .search-placeholder .search-hint {
+  white-space: nowrap;
+}
+.topbar .search .kbd { flex-shrink: 0; }
+
+
+/* ───────── Unified :focus-visible ring ─────────
+   Keyboard users get a crisp ring; mouse users see nothing.
+   Uses the accent color at 45% for visibility against any pane tint. */
+*:focus { outline: none; }
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.side-item:focus-visible,
+.side-proj:focus-visible,
+.seg-item:focus-visible,
+.tcard:focus-visible,
+.card:focus-visible,
+.email-item-v2:focus-visible,
+.acct-pill:focus-visible,
+.tbp-row:focus-visible,
+.palette-item:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg-canvas),
+    0 0 0 4px oklch(60% 0.18 255 / 0.55);
+  position: relative;
+  z-index: 5;
+}
+[data-theme="dark"] button:focus-visible,
+[data-theme="dark"] [role="button"]:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--bg-canvas),
+    0 0 0 4px oklch(72% 0.18 255 / 0.55);
+}
+
+
+/* ───────── prefers-reduced-motion ─────────
+   Respect the OS setting. Keep the UI functional but calm. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .insights-badge .pulse { box-shadow: none; }
+}
+
+
+/* ───────── Sidebar polish ─────────
+   (a) Stronger active-item contrast (memory follow-up).
+   (b) Add a proper right-edge shadow so the sidebar reads as elevated,
+       matching the other panes. */
+[data-theme="light"] .sidebar {
+  box-shadow:
+    1px 0 0 var(--hair-2),
+    2px 0 6px -2px rgba(15, 22, 36, 0.05);
+}
+
+[data-theme="light"] .side-item.active,
+[data-theme="light"] .side-proj.active {
+  background: oklch(90% 0.013 260);
+  box-shadow: inset 2px 0 0 var(--link);
+  font-weight: 650;
+  color: var(--text-0);
+}
+[data-theme="light"] .side-item.active .side-icon,
+[data-theme="light"] .side-item.active svg {
+  color: var(--link);
+}
+
+
+/* ───────── Status bar alignment ─────────
+   The sb-chip was 19px vs sb-group 15px; Density was 24px.
+   Lock every direct child to the same vertical rhythm. */
+.statusbar {
+  align-items: center;
+}
+.statusbar > * {
+  display: inline-flex;
+  align-items: center;
+}
+.statusbar .sb-chip {
+  height: 20px;
+  padding: 0 8px;
+  line-height: 1;
+}
+.statusbar .seg.mini {
+  padding: 1px;
+  height: 20px;
+}
+.statusbar .seg.mini .seg-item {
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 1;
+}
+[data-theme="light"] .statusbar {
+  color: var(--text-2);
+}
+[data-theme="light"] .statusbar .sb-label {
+  color: var(--text-3);
+  font-weight: 600;
+}
+[data-theme="light"] .statusbar .sb-sub {
+  color: var(--text-4);
+}
+
+
+/* ───────── Insights badge: clean 1px border ─────────
+   Fractional 0.67px border-right was rendering blurry. Pin to 1px. */
+.insights-compact .insights-badge {
+  border-right: 1px solid var(--hair-2);
+}
+.insights-compact .is-expand-btn { white-space: nowrap; }
+.insights-compact .is-replan     { white-space: nowrap; }
+
+
+/* ───────── Task card title: ellipsis when cramped ─────────
+   41 instances were clipped w/o ellipsis. Clamp to 2 lines + … */
+.tcard .tcard-title,
+.note .title-text,
+.event .title-text,
+.goal .title-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+
+/* ───────── Email item: fix "via Gmail" crush + tighter density ─────────
+   The grid was giving 0px to the 4th column when content ran long.
+   Use flex fallback so the chip row wraps and via-label stays visible. */
+.email-item-v2 {
+  grid-template-columns: 4px 36px minmax(0, 1fr);
+}
+.email-item-v2 .ei-main { grid-column: 3 / -1; }
+.email-item-v2 .ei-chips-tight { flex-wrap: wrap; }
+.email-item-v2 .ei-via {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-left: 6px;
+}
+
+/* Compact density: tighten line-heights on email items (memory follow-up) */
+[data-density="compact"] .email-item-v2 {
+  padding: 6px 10px !important;
+  gap: 6px !important;
+}
+[data-density="compact"] .email-item-v2 .ei-line1  { font-size: 12.5px; line-height: 1.2; }
+[data-density="compact"] .email-item-v2 .ei-snip-tight { font-size: 11.5px; line-height: 1.3; -webkit-line-clamp: 1; }
+[data-density="compact"] .email-item-v2 .ei-avatar { width: 28px; height: 28px; font-size: 10px; }
+[data-density="compact"] .email-item-v2 .ei-chips-tight { min-height: 16px; gap: 4px; }
+[data-density="compact"] .email-hero { padding: 10px !important; }
+[data-density="compact"] .eh-big    { font-size: 36px !important; }
+
+
+/* ───────── Unified thin scrollbars (WebKit) ─────────
+   sidebar-scroll was thin; kanban-grid/agenda-body/email-body were
+   default. Harmonize across all scroll containers. */
+.sidebar-scroll,
+.kanban-grid,
+.agenda-body,
+.email-body,
+.palette-body,
+.insp-body,
+.sb-filter-pop {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hair-3) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar,
+.kanban-grid::-webkit-scrollbar,
+.agenda-body::-webkit-scrollbar,
+.email-body::-webkit-scrollbar,
+.palette-body::-webkit-scrollbar,
+.insp-body::-webkit-scrollbar,
+.sb-filter-pop::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar-track,
+.kanban-grid::-webkit-scrollbar-track,
+.agenda-body::-webkit-scrollbar-track,
+.email-body::-webkit-scrollbar-track,
+.palette-body::-webkit-scrollbar-track,
+.insp-body::-webkit-scrollbar-track,
+.sb-filter-pop::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb,
+.kanban-grid::-webkit-scrollbar-thumb,
+.agenda-body::-webkit-scrollbar-thumb,
+.email-body::-webkit-scrollbar-thumb,
+.palette-body::-webkit-scrollbar-thumb,
+.insp-body::-webkit-scrollbar-thumb,
+.sb-filter-pop::-webkit-scrollbar-thumb {
+  background: var(--hair-2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.kanban-grid::-webkit-scrollbar-thumb:hover,
+.agenda-body::-webkit-scrollbar-thumb:hover,
+.email-body::-webkit-scrollbar-thumb:hover,
+.palette-body::-webkit-scrollbar-thumb:hover,
+.insp-body::-webkit-scrollbar-thumb:hover,
+.sb-filter-pop::-webkit-scrollbar-thumb:hover {
+  background: var(--hair-3);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+
+/* ───────── Cursor affordances ─────────
+   Everything clickable signals clickability; text areas signal text. */
+.side-item, .side-proj, .seg-item, .acct-pill,
+.tcard, .card, .email-item-v2, .palette-item,
+.tbp-row, .krow .row-chev, .twd, .mm-cell {
+  cursor: pointer;
+}
+.topbar .search { cursor: text; }
+.tcard .checkbox { cursor: pointer; }
+
+
+/* ───────── Selection color ─────────
+   Matches the link accent; reads on all pane tints. */
+::selection {
+  background: oklch(84% 0.08 255);
+  color: var(--text-0);
+}
+[data-theme="dark"] ::selection {
+  background: oklch(40% 0.12 255);
+  color: #fff;
+}
+
+
+/* ───────── Subbar View button: don't wrap on narrow viewports ─────── */
+.sb-filter-wrap .btn { white-space: nowrap; }
+.subbar-compact .week-nav .date { white-space: nowrap; }
+
+
+/* ───────── Kanban pane-head count badge: tabular + breathing room ── */
+.kanban-wrap .pane-head .count,
+.agenda .pane-head .count,
+.email-rail .pane-head .title-sub {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+
+/* ───────── Inspector/palette: soften scrim on light bg ───────── */
+[data-theme="light"] .inspector-scrim,
+[data-theme="light"] .palette-scrim {
+  background: oklch(65% 0.015 260 / 0.32);
+  backdrop-filter: blur(4px) saturate(1.1);
+  -webkit-backdrop-filter: blur(4px) saturate(1.1);
+}
+
+
+/* ───────── Disabled state (any el with [disabled] or .is-disabled) ── */
+button[disabled],
+.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* ───────── Hero name: ensure bold names stay on one line ───────── */
+.proj-hero .ph-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+
+/* ───────── Agenda: today column tint on light mode ───────── */
+[data-theme="light"] .day-col.today {
+  background: oklch(97% 0.012 255 / 0.6);
+}
+[data-theme="light"] .now-line {
+  background: var(--link);
+  box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.2);
+}
+
+
+/* ───────── Tweaks panel: align with pane color system ───────── */
+[data-theme="light"] .tweaks-panel {
+  background: var(--bg-1);
+  border: 2px solid var(--hair-2);
+  box-shadow:
+    0 4px 12px rgba(15,22,36,0.08),
+    0 18px 40px -10px rgba(15,22,36,0.14);
+  border-radius: 10px;
 }
