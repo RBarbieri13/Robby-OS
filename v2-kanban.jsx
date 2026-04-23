@@ -337,13 +337,104 @@ function CardFor({ row, item, accent, isHero, project, expanded, onToggleExpand,
   return null;
 }
 
-function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard }) {
+function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder }) {
   const { PROJECTS, TASKS, NOTES, EVENTS_ROW, GOALS } = window.DATA;
   const sources = { tasks: TASKS, notes: NOTES, events: EVENTS_ROW, goals: GOALS };
   const projects = PROJECTS.filter(p => projectFilters.includes(p.id));
   const cols = projects.length;
 
   const openTasks = (pid) => (TASKS[pid] || []).filter(t => !t.done).length;
+
+  // Drag-and-drop state. dragging identifies the source card; dropHint
+  // identifies where the drop indicator should render (target card id +
+  // before/after, or an empty cell).
+  const [dragging, setDragging] = React.useState(null);      // { id, row, projectId, idx }
+  const [dropHint, setDropHint] = React.useState(null);      // { targetId, edge } | { emptyCell: projectId, row }
+
+  const resolveOrder = (rowId, projectId, items) => {
+    const savedIds = cardOrder?.[rowId]?.[projectId] || [];
+    if (!savedIds.length) return items;
+    const byId = Object.fromEntries(items.map(it => [it.id, it]));
+    const ordered = [];
+    // Saved order first (skipping any IDs no longer in items)
+    for (const id of savedIds) {
+      if (byId[id]) { ordered.push(byId[id]); delete byId[id]; }
+    }
+    // Append any new items that didn't have a saved position
+    ordered.push(...items.filter(it => byId[it.id]));
+    return ordered;
+  };
+
+  const onDragStartCard = (e, id, rowId, projectId, idx) => {
+    e.stopPropagation();
+    try { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", id); } catch (_) {}
+    setDragging({ id, row: rowId, projectId, idx });
+  };
+  const onDragEndCard = () => {
+    setDragging(null);
+    setDropHint(null);
+  };
+  const onDragOverCard = (e, targetId, rowId, projectId) => {
+    if (!dragging || dragging.row !== rowId) return;     // only reorder within same row type
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const edge = (e.clientY - rect.top) < rect.height / 2 ? "before" : "after";
+    setDropHint({ targetId, edge });
+  };
+  const onDropCard = (e, targetId, rowId, projectId) => {
+    if (!dragging || dragging.row !== rowId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const { id: dragId, projectId: srcProject } = dragging;
+    if (dragId === targetId) { setDragging(null); setDropHint(null); return; }
+    const edge = dropHint?.edge || "before";
+    // Build the new ordered ID list for the target (row, projectId) cell
+    const targetItems = resolveOrder(rowId, projectId, sources[rowId][projectId] || []);
+    const targetIds = targetItems.map(it => it.id).filter(id => id !== dragId);
+    const idx = targetIds.indexOf(targetId);
+    const insertAt = edge === "before" ? idx : idx + 1;
+    targetIds.splice(insertAt, 0, dragId);
+
+    // If the drag crossed project columns within the same row, remove
+    // dragId from the source column's order too
+    let nextOrder = { ...(cardOrder || {}) };
+    nextOrder[rowId] = { ...(nextOrder[rowId] || {}) };
+    if (srcProject !== projectId) {
+      const srcItems = resolveOrder(rowId, srcProject, sources[rowId][srcProject] || []);
+      const srcIds = srcItems.map(it => it.id).filter(id => id !== dragId);
+      nextOrder[rowId][srcProject] = srcIds;
+    }
+    nextOrder[rowId][projectId] = targetIds;
+    onReorder?.(nextOrder);
+    setDragging(null);
+    setDropHint(null);
+  };
+  const onDragOverEmpty = (e, rowId, projectId) => {
+    if (!dragging || dragging.row !== rowId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDropHint({ emptyCell: projectId, row: rowId });
+  };
+  const onDropEmpty = (e, rowId, projectId) => {
+    if (!dragging || dragging.row !== rowId) return;
+    e.preventDefault();
+    const { id: dragId, projectId: srcProject } = dragging;
+    let nextOrder = { ...(cardOrder || {}) };
+    nextOrder[rowId] = { ...(nextOrder[rowId] || {}) };
+    if (srcProject !== projectId) {
+      const srcItems = resolveOrder(rowId, srcProject, sources[rowId][srcProject] || []);
+      nextOrder[rowId][srcProject] = srcItems.map(it => it.id).filter(id => id !== dragId);
+    }
+    const destItems = resolveOrder(rowId, projectId, sources[rowId][projectId] || []);
+    const destIds = destItems.map(it => it.id).filter(id => id !== dragId);
+    destIds.push(dragId);
+    nextOrder[rowId][projectId] = destIds;
+    onReorder?.(nextOrder);
+    setDragging(null);
+    setDropHint(null);
+  };
 
   return (
     <div className="pane kanban-wrap" data-screen-label="Cockpit Grid" data-empty={cols === 0 ? "true" : "false"}>
@@ -447,9 +538,16 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
                 </div>
 
                 {projects.map((p, pi) => {
-                  const items = sources[row.id][p.id] || [];
+                  const baseItems = sources[row.id][p.id] || [];
+                  const items = resolveOrder(row.id, p.id, baseItems);
+                  const isEmptyDropTarget = dropHint?.emptyCell === p.id
+                    && dropHint?.row === row.id
+                    && items.length === 0;
                   return (
-                    <div key={p.id} className="kcell">
+                    <div key={p.id}
+                         className={"kcell " + (isEmptyDropTarget ? "drop-target" : "")}
+                         onDragOver={items.length === 0 ? (e => onDragOverEmpty(e, row.id, p.id)) : undefined}
+                         onDrop={items.length === 0 ? (e => onDropEmpty(e, row.id, p.id)) : undefined}>
                       {collapsed ? (
                         <div className="collapsed-pill">
                           <span>{row.label.toLowerCase()}</span>
@@ -462,27 +560,42 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
                             // reflect the latest localStorage-persisted state.
                             const edits = cardEdits?.[item.id] || {};
                             const mergedItem = { ...item, ...edits };
-                            // Drop .overdue/.soon if user changed due manually
                             if (edits.due !== undefined) {
                               mergedItem.overdue = false;
                               mergedItem.soon = false;
                             }
+                            const isDragging = dragging?.id === item.id;
+                            const isDropTarget = dropHint?.targetId === item.id;
+                            const dropEdgeClass = isDropTarget
+                              ? (dropHint.edge === "before" ? "drop-before" : "drop-after")
+                              : "";
                             return (
-                              <CardFor
+                              <div
                                 key={item.id}
-                                row={row.id}
-                                item={mergedItem}
-                                accent={accentFor(p, row.id, colorBy, row.typeColor, mergedItem)}
-                                isHero={row.id === "goals" && ii === 0 && colorBy === "project"}
-                                project={p}
-                                expanded={!!expandedCards?.[item.id]}
-                                onToggleExpand={() => toggleExpandCard?.(item.id)}
-                                onEdit={(field, value) => onCardEdit?.(item.id, field, value)}
-                                onInspect={() => onOpenCard?.({ row: row.id, data: mergedItem, project: p })}
-                              />
+                                draggable={true}
+                                onDragStart={(e) => onDragStartCard(e, item.id, row.id, p.id, ii)}
+                                onDragEnd={onDragEndCard}
+                                onDragOver={(e) => onDragOverCard(e, item.id, row.id, p.id)}
+                                onDrop={(e) => onDropCard(e, item.id, row.id, p.id)}
+                                className={"kdrag " + (isDragging ? "dragging " : "") + dropEdgeClass}
+                              >
+                                <CardFor
+                                  row={row.id}
+                                  item={mergedItem}
+                                  accent={accentFor(p, row.id, colorBy, row.typeColor, mergedItem)}
+                                  isHero={row.id === "goals" && ii === 0 && colorBy === "project"}
+                                  project={p}
+                                  expanded={!!expandedCards?.[item.id]}
+                                  onToggleExpand={() => toggleExpandCard?.(item.id)}
+                                  onEdit={(field, value) => onCardEdit?.(item.id, field, value)}
+                                  onInspect={() => onOpenCard?.({ row: row.id, data: mergedItem, project: p })}
+                                />
+                              </div>
                             );
                           })}
-                          <div className="kcell-add">
+                          <div className="kcell-add"
+                               onDragOver={(e) => onDragOverEmpty(e, row.id, p.id)}
+                               onDrop={(e) => onDropEmpty(e, row.id, p.id)}>
                             <I.Plus className="icon-xs" /> Add {row.id.replace(/s$/, "")}
                           </div>
                         </React.Fragment>

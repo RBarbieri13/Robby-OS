@@ -26,15 +26,21 @@ function App() {
   const [density, setDensity] = React.useState(TWEAK_DEFAULTS.density);
   const [showInsights, setShowInsights] = React.useState(TWEAK_DEFAULTS.showInsights);
 
-  // ─── Card edits + expanded state — both persisted to localStorage ───
+  // ─── Card edits + expanded state + reorder map — all persisted ───
   const LS_EDITS    = "robbyOS.cardEdits.v1";
   const LS_EXPANDED = "robbyOS.expandedCards.v1";
+  const LS_ORDER    = "robbyOS.cardOrder.v1";
   const [cardEdits, setCardEdits] = React.useState(() => {
     try { return JSON.parse(localStorage.getItem(LS_EDITS) || "{}"); }
     catch (_) { return {}; }
   });
   const [expandedCards, setExpandedCards] = React.useState(() => {
     try { return JSON.parse(localStorage.getItem(LS_EXPANDED) || "{}"); }
+    catch (_) { return {}; }
+  });
+  // cardOrder shape: { [rowId]: { [projectId]: [cardId, ...] } }
+  const [cardOrder, setCardOrder] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_ORDER) || "{}"); }
     catch (_) { return {}; }
   });
 
@@ -44,18 +50,23 @@ function App() {
   React.useEffect(() => {
     try { localStorage.setItem(LS_EXPANDED, JSON.stringify(expandedCards)); } catch (_) {}
   }, [expandedCards]);
+  React.useEffect(() => {
+    try { localStorage.setItem(LS_ORDER, JSON.stringify(cardOrder)); } catch (_) {}
+  }, [cardOrder]);
 
   const onCardEdit = React.useCallback((id, field, value) => {
     setCardEdits(prev => {
       const prior = prev[id] || {};
-      // If value is undefined or matches the base, we still record it
-      // because removing the entry would revert to the original forever.
       return { ...prev, [id]: { ...prior, [field]: value } };
     });
   }, []);
 
   const toggleExpandCard = React.useCallback((id) => {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const onReorderCards = React.useCallback((nextOrder) => {
+    setCardOrder(nextOrder);
   }, []);
 
   // ─── Resizable layout — sidebar width, email rail width, both
@@ -90,6 +101,24 @@ function App() {
     } catch (_) {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ─── Auto-collapse thresholds ───
+  // When the user drags a pane below its threshold, flip into the
+  // collapsed icon-only mode. When they drag back above it, expand.
+  // Keeps the pane contents usable at any width instead of squashing
+  // text into an unreadable sliver.
+  const RAIL_COLLAPSE_AT = 120;            // px
+  const EMAIL_COLLAPSE_AT = 80;
+  const RAIL_EXPAND_AT = 140;
+  const EMAIL_EXPAND_AT = 120;
+  React.useEffect(() => {
+    if (!railCollapsed && railW < RAIL_COLLAPSE_AT) setRailCollapsed(true);
+    else if (railCollapsed && railW > RAIL_EXPAND_AT) setRailCollapsed(false);
+  }, [railW, railCollapsed]);
+  React.useEffect(() => {
+    if (!emailCollapsed && emailW < EMAIL_COLLAPSE_AT) setEmailCollapsed(true);
+    else if (emailCollapsed && emailW > EMAIL_EXPAND_AT) setEmailCollapsed(false);
+  }, [emailW, emailCollapsed]);
 
   React.useEffect(() => { document.body.setAttribute("data-theme", theme); }, [theme]);
   React.useEffect(() => { document.body.setAttribute("data-density", density); }, [density]);
@@ -287,7 +316,9 @@ function App() {
               cardEdits={cardEdits}
               onCardEdit={onCardEdit}
               expandedCards={expandedCards}
-              toggleExpandCard={toggleExpandCard} />
+              toggleExpandCard={toggleExpandCard}
+              cardOrder={cardOrder}
+              onReorder={onReorderCards} />
 
             {/* Kanban ↔ Agenda — horizontal resizer */}
             <div className="resizer resizer-horizontal"
