@@ -20,8 +20,9 @@
   /* Canvas (outermost gutters/behind panels) */
   --bg-canvas: oklch(93% 0.008 260);          /* cool, visibly darker than panes */
 
-  /* Sidebar — warm off-white, subtly distinct from main */
-  --bg-rail:   oklch(96.5% 0.010 80);          /* warm ivory */
+  /* Sidebar — warm tan/ivory. Chroma bumped so the tan reads
+     properly against white/canvas panes instead of disappearing. */
+  --bg-rail:   oklch(94% 0.028 82);             /* warm tan ivory */
 
   /* Panes */
   --bg-1:      #ffffff;                         /* kanban / top surfaces */
