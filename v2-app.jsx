@@ -265,14 +265,16 @@ function App() {
           onOpenPalette={() => setPaletteOpen(true)}
           density={density} setDensity={setDensity} />
 
-        <window.SubBarV2
-          projectFilters={projectFilters} setProjectFilters={setProjectFilters}
-          colorBy={colorBy} setColorBy={setColorBy}
-          weekLabel={weekLabel}
-          density={density} setDensity={setDensity}
-          onPrev={() => {}} onNext={() => {}} onToday={() => {}} />
-
-        {showInsights ? <window.InsightsV2 onDismiss={() => setShowInsights(false)} /> : null}
+        {/* SubBar (date nav + Week/Day/Month + View) has been folded into
+            InsightsV2 — one combined command row instead of two. */}
+        {showInsights ? (
+          <window.InsightsV2
+            onDismiss={() => setShowInsights(false)}
+            colorBy={colorBy} setColorBy={setColorBy}
+            density={density} setDensity={setDensity}
+            weekLabel={weekLabel}
+            onPrev={() => {}} onNext={() => {}} onToday={() => {}} />
+        ) : null}
 
         <div className={"workspace " + (emailCollapsed ? "email-collapsed" : "")}
              style={workspaceStyle}>

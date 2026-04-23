@@ -447,3 +447,133 @@ input:focus-visible {
 /* Scrollbars */
 [data-theme="light"] *::-webkit-scrollbar-thumb { background: var(--c-line-2); }
 [data-theme="light"] *::-webkit-scrollbar-thumb:hover { background: var(--c-muted); }
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   Combined command row — SubBar controls folded into InsightsStrip
+   ═════════════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] .insights-combined {
+  flex-wrap: nowrap !important;          /* one line at normal viewports */
+  gap: 8px;
+  padding: 6px 12px !important;
+  min-height: 44px;
+  overflow: hidden;                      /* anything truly too narrow gets clipped, not wrapped */
+}
+
+/* Summary pills get a flex-shrink so the primary controls on the right
+   never get pushed offscreen first */
+[data-theme="light"] .insights-combined .insights-summary {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-right: auto;                    /* push everything after this to the right */
+}
+
+/* Vertical separators between groups */
+[data-theme="light"] .ic-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--c-line);
+  flex-shrink: 0;
+}
+
+/* Week nav inside the combined row */
+[data-theme="light"] .ic-week-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+[data-theme="light"] .ic-week-nav .chev-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--c-char);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+[data-theme="light"] .ic-week-nav .chev-btn:hover {
+  background: rgba(255,255,255,0.7);
+  border-color: var(--c-line);
+}
+[data-theme="light"] .ic-week-nav .date {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-ink);
+  padding: 0 6px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+[data-theme="light"] .ic-today-btn {
+  padding: 4px 10px !important;
+  font-size: 11.5px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .ic-view-seg {
+  flex-shrink: 0;
+}
+[data-theme="light"] .ic-view-seg .seg-item {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+}
+
+/* Primary "Replan day" button keeps the charcoal-ink treatment the
+   theme already defines; just make sure it doesn't shrink */
+[data-theme="light"] .is-replan { flex-shrink: 0; }
+[data-theme="light"] .is-expand-btn { flex-shrink: 0; }
+
+[data-theme="light"] .ic-view-wrap {
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* The ✕ dismiss button */
+[data-theme="light"] .insights-combined > .ic-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--c-char);
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+[data-theme="light"] .insights-combined > .ic-btn:hover {
+  background: rgba(255,255,255,0.7);
+  border-color: var(--c-line);
+}
+
+/* Expanded detail row — make sure it still shows up full-width below */
+[data-theme="light"] .insights-combined.expanded .insights-expanded {
+  flex-basis: 100%;
+  order: 99;                             /* always goes below the nowrap row */
+  padding: 8px 0 4px 0;
+  margin-top: 6px;
+  border-top: 1px dashed var(--c-line);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+/* Force the row itself to wrap ONLY when expanded, so the detail row
+   appears below */
+[data-theme="light"] .insights-combined.expanded {
+  flex-wrap: wrap !important;
+  min-height: 0;
+}
