@@ -2203,3 +2203,119 @@ button[disabled],
 
 /* Email pane-head tighter */
 .email-rail .pane-head { padding: 5px 8px !important; min-height: 30px; }
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   v6 · MUTED PASTEL THEME — coordinated pane palette
+   Every pane gets a tint in the ~0.02–0.03 chroma range so no pane
+   feels like "stark white against colored pane" anymore. The sidebar
+   tan sets the reference warmth; other panes rotate hue but match
+   chroma so they read as a coordinated family.
+   ═════════════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] {
+  /* Canvas (outermost gutter — seen between panes) */
+  --bg-canvas: oklch(90% 0.020 75);                 /* warm beige */
+
+  /* Panes — muted pastels, coordinated chroma */
+  --pane-sidebar-bg: oklch(94% 0.028 82);           /* warm tan (was --bg-rail) */
+  --pane-topbar-bg:  oklch(95% 0.022 82);           /* lighter warm tan */
+  --pane-subbar-bg:  oklch(96.5% 0.018 82);         /* faintest warm tan */
+  --pane-insights-bg: oklch(94% 0.030 95);          /* pale cream/peach */
+  --pane-kanban-bg:  oklch(97% 0.010 90);           /* warm off-white */
+  --pane-agenda-bg:  oklch(95% 0.025 200);          /* pale sage */
+  --pane-email-bg:   oklch(94% 0.025 290);          /* pale lavender */
+  --pane-status-bg:  oklch(93% 0.025 82);           /* warm tan */
+
+  /* Keep --bg-rail alias for legacy rules */
+  --bg-rail:         var(--pane-sidebar-bg);
+
+  /* Card-on-pane backgrounds need a white lift so cards still read as
+     elevated. Pure white against a pastel pane = crisp contrast. */
+  --bg-1:      #ffffff;
+  --bg-2:      oklch(98% 0.008 82);
+  --bg-3:      oklch(95.5% 0.015 82);
+  --bg-4:      oklch(92% 0.020 82);
+  --bg-5:      oklch(88% 0.026 82);
+
+  /* Hairlines — derived from the tan family for warmth */
+  --hair:      oklch(86% 0.020 82);
+  --hair-2:    oklch(80% 0.025 82);
+  --hair-3:    oklch(72% 0.030 82);
+
+  --shadow-pane:
+    0 0 0 2px var(--hair-2),
+    0 1px 2px rgba(40, 30, 10, 0.04),
+    0 4px 14px -6px rgba(40, 30, 10, 0.10),
+    0 12px 24px -12px rgba(40, 30, 10, 0.08);
+}
+
+/* Apply new per-pane tokens. These rules override the earlier
+   [data-theme="light"] selectors because they come later in the file. */
+[data-theme="light"] .sidebar {
+  background: var(--pane-sidebar-bg);
+  border-right: 2px solid var(--hair-2);
+}
+[data-theme="light"] .topbar {
+  background: var(--pane-topbar-bg);
+  border-bottom: 2px solid var(--hair-2);
+}
+[data-theme="light"] .subbar {
+  background: var(--pane-subbar-bg);
+  border-bottom: 2px solid var(--hair-2);
+}
+[data-theme="light"] .insights-strip {
+  background: var(--pane-insights-bg);
+  border-bottom: 2px solid var(--hair-2);
+}
+[data-theme="light"] .kanban-wrap,
+[data-theme="light"] .pane.kanban-wrap {
+  background: var(--pane-kanban-bg);
+}
+[data-theme="light"] .pane.agenda,
+[data-theme="light"] .agenda {
+  background: var(--pane-agenda-bg);
+}
+[data-theme="light"] .email-rail {
+  background: var(--pane-email-bg);
+}
+[data-theme="light"] .statusbar {
+  background: var(--pane-status-bg);
+  border-top: 2px solid var(--hair-2);
+}
+
+/* Canvas (gutter between panes) gets the warm beige */
+[data-theme="light"] body,
+[data-theme="light"] html,
+[data-theme="light"] .app,
+[data-theme="light"] .main,
+[data-theme="light"] .workspace {
+  background: var(--bg-canvas);
+}
+
+/* Cards on pastel panes — pure white gives crisp separation */
+[data-theme="light"] .tcard,
+[data-theme="light"] .card {
+  background: #ffffff;
+  border: 1.5px solid var(--hair);
+}
+
+/* AI Triage hero on the pale-lavender email pane needs to sit higher
+   than the pane background, not match it. Bump to a faint tinted white. */
+[data-theme="light"] .email-hero {
+  background: oklch(98% 0.012 290);
+  border-color: oklch(82% 0.030 290);
+}
+
+/* Agenda sage → subtle adjustments for legibility */
+[data-theme="light"] .agenda .day-col.today {
+  background: oklch(96% 0.035 200);
+  box-shadow: inset 0 0 0 1px oklch(80% 0.05 200);
+}
+[data-theme="light"] .agenda .day-col:nth-of-type(7),
+[data-theme="light"] .agenda .day-col:nth-of-type(8) {
+  background: oklch(95% 0.020 82 / 0.4);  /* weekends warmer */
+}
+[data-theme="light"] .agenda .hour-line {
+  border-top-color: oklch(90% 0.020 200);
+}
