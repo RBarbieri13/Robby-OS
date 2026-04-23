@@ -2319,3 +2319,325 @@ button[disabled],
 [data-theme="light"] .agenda .hour-line {
   border-top-color: oklch(90% 0.020 200);
 }
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   v6 · COMPACT TASK CARDS + INLINE EDITS
+   Default card shows only: checkbox + title + date + priority. Expand
+   chevron reveals full details. All fields editable via popovers.
+   ═════════════════════════════════════════════════════════════════════ */
+
+.tcard-compact {
+  position: relative;
+  padding: 0 !important;
+  min-height: 0 !important;
+  margin-bottom: 4px;
+}
+.tcard-compact .tcard-rail {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent, var(--hair-2));
+  border-radius: 3px 0 0 3px;
+}
+.tcard-compact .tcard-body {
+  padding: 5px 8px 5px 10px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Row 1: checkbox + title + expand */
+.tcard-compact .tcard-line1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tcard-compact .checkbox {
+  flex-shrink: 0;
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--hair-2);
+  border-radius: 3px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 100ms ease, background 100ms ease;
+}
+.tcard-compact .checkbox:hover { border-color: var(--hair-3); }
+.tcard-compact .checkbox.checked {
+  background: var(--link);
+  border-color: var(--link);
+}
+.tcard-compact.done .tcard-title {
+  text-decoration: line-through;
+  color: var(--text-4);
+}
+.tcard-compact .tcard-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  color: var(--text-0);
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  padding: 1px 3px;
+  margin: -1px -3px;
+  border-radius: 3px;
+  -webkit-line-clamp: unset !important;
+  min-height: 0 !important;
+  display: block !important;
+}
+.tcard-compact .tcard-title:hover {
+  background: var(--bg-3);
+}
+.tcard-compact .tcard-expand {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 3px;
+  color: var(--text-4);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tcard-compact .tcard-expand:hover {
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+
+/* Row 2: date chip + priority chip */
+.tcard-compact .tcard-line2 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 20px;   /* align under title (past checkbox) */
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.tc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.2;
+  border-radius: 4px;
+  border: 1px solid var(--hair);
+  background: var(--bg-2);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color 100ms ease, background 100ms ease;
+  position: relative;
+  white-space: nowrap;
+}
+.tc-chip:hover {
+  border-color: var(--hair-3);
+  background: var(--bg-1);
+}
+.tc-chip-date.overdue {
+  background: oklch(94% 0.06 25);
+  border-color: oklch(82% 0.12 25);
+  color: oklch(42% 0.18 25);
+}
+.tc-chip-date.soon {
+  background: oklch(95% 0.06 55);
+  border-color: oklch(85% 0.1 55);
+  color: oklch(44% 0.16 55);
+}
+.tc-chip-prio.prio-high {
+  background: oklch(94% 0.06 25);
+  border-color: oklch(80% 0.14 25);
+  color: oklch(40% 0.2 25);
+  letter-spacing: 0.08em;
+}
+.tc-chip-prio.prio-med {
+  background: oklch(95% 0.06 70);
+  border-color: oklch(82% 0.1 70);
+  color: oklch(42% 0.17 70);
+  letter-spacing: 0.06em;
+}
+.tc-chip-prio.prio-low {
+  background: oklch(96% 0.04 230);
+  border-color: oklch(82% 0.08 230);
+  color: oklch(42% 0.14 230);
+  letter-spacing: 0.04em;
+}
+.tc-chip-prio.prio-none {
+  color: var(--text-4);
+  border-style: dashed;
+}
+
+.tc-flag {
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.1em;
+  margin-left: auto;
+}
+.tc-flag.overdue { background: oklch(92% 0.07 25);  color: oklch(42% 0.2 25); }
+.tc-flag.soon    { background: oklch(94% 0.07 55);  color: oklch(44% 0.18 55); }
+
+
+/* Expanded details — appears below rows 1/2 when card is expanded */
+.tcard-compact.expanded {
+  background: var(--bg-2) !important;
+  border-color: var(--hair-3) !important;
+}
+.tcard-expanded {
+  padding-top: 4px;
+  margin-top: 3px;
+  border-top: 1px dashed var(--hair);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tcard-expanded .tcard-week {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-3);
+}
+.tcard-expanded .tcard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.tcard-expanded .tag-pill,
+.tcard-expanded .tag-proj {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.tcard-expanded .tcard-foot {
+  padding-top: 2px;
+  border-top: none;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-4);
+}
+
+
+/* ─── Inline-edit popovers ─── */
+
+.tc-pop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  z-index: 50;
+  background: var(--bg-1);
+  border: 2px solid var(--hair-2);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 14px rgba(40, 30, 10, 0.10),
+    0 14px 28px -8px rgba(40, 30, 10, 0.14);
+  min-width: 200px;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--text-1);
+  cursor: default;
+}
+.tc-pop-anchor-title { left: 22px; right: 22px; min-width: 240px; }
+
+.tc-pop-body { display: flex; flex-direction: column; gap: 6px; }
+.tc-pop-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-4);
+}
+.tc-pop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.tc-pop-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.tc-pop-opt {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--hair);
+  background: var(--bg-2);
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-1);
+}
+.tc-pop-opt:hover {
+  border-color: var(--hair-3);
+  background: var(--bg-3);
+}
+.tc-pop-opt.active {
+  border-color: var(--link);
+  background: oklch(96% 0.02 255);
+  color: var(--link);
+}
+.tc-pop-prio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tc-pop-prio-sw {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tc-pop-input {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--hair-2);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text-0);
+  outline: none;
+  min-width: 0;
+}
+.tc-pop-input:focus {
+  border-color: var(--link);
+  box-shadow: 0 0 0 2px oklch(60% 0.18 255 / 0.25);
+}
+.tc-pop-go {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--link);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tc-pop-go:hover { filter: brightness(1.05); }
+.tc-pop-cancel {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-2);
+}
+.tc-pop-cancel:hover { background: var(--bg-3); }
+
+/* Cards have overflow-hidden by default so absolute popovers need clipping off */
+.tcard-compact { overflow: visible !important; }
+.tcard-compact .tcard-body { overflow: visible !important; }
+.kcell { overflow: visible; }

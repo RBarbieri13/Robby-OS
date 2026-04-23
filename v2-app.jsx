@@ -26,6 +26,38 @@ function App() {
   const [density, setDensity] = React.useState(TWEAK_DEFAULTS.density);
   const [showInsights, setShowInsights] = React.useState(TWEAK_DEFAULTS.showInsights);
 
+  // ─── Card edits + expanded state — both persisted to localStorage ───
+  const LS_EDITS    = "robbyOS.cardEdits.v1";
+  const LS_EXPANDED = "robbyOS.expandedCards.v1";
+  const [cardEdits, setCardEdits] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_EDITS) || "{}"); }
+    catch (_) { return {}; }
+  });
+  const [expandedCards, setExpandedCards] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_EXPANDED) || "{}"); }
+    catch (_) { return {}; }
+  });
+
+  React.useEffect(() => {
+    try { localStorage.setItem(LS_EDITS, JSON.stringify(cardEdits)); } catch (_) {}
+  }, [cardEdits]);
+  React.useEffect(() => {
+    try { localStorage.setItem(LS_EXPANDED, JSON.stringify(expandedCards)); } catch (_) {}
+  }, [expandedCards]);
+
+  const onCardEdit = React.useCallback((id, field, value) => {
+    setCardEdits(prev => {
+      const prior = prev[id] || {};
+      // If value is undefined or matches the base, we still record it
+      // because removing the entry would revert to the original forever.
+      return { ...prev, [id]: { ...prior, [field]: value } };
+    });
+  }, []);
+
+  const toggleExpandCard = React.useCallback((id) => {
+    setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
   React.useEffect(() => { document.body.setAttribute("data-theme", theme); }, [theme]);
   React.useEffect(() => { document.body.setAttribute("data-density", density); }, [density]);
 
@@ -107,17 +139,17 @@ function App() {
     window.addEventListener("mouseup", onUp);
   };
 
-  // Kanban row heights (comfortable density): hero ~56 (slim rectangle),
-  // each open row ~160, each collapsed row ~38. Plus pane-head 36 +
-  // paddings 24. We pin the kanban track to a pixel height computed
-  // from the open-row count so the agenda naturally grows as rows
-  // collapse. Manual drag via kanbanFrac always wins when set.
+  // Kanban row heights with compact task cards (~42px) + expanded rows
+  // when user expands cards. Each open row displays up to ~5 compact
+  // cards before scrolling. We estimate: compact card ~44px, plus
+  // row label area ~30px of vertical padding. Hero ~56. Collapsed
+  // row ~38. Allow generous min so the agenda always has room.
   const TOTAL_ROWS = 4;
   const openRows = TOTAL_ROWS - collapsedRows.length;
   const kanbanPx =
     36  /* pane-head */ +
     60  /* slim hero strip */ +
-    openRows * 160 +
+    openRows * 240 +   /* ~5 compact cards per row */
     collapsedRows.length * 38 +
     28  /* add-row footer */ +
     16  /* paddings */;
@@ -159,7 +191,11 @@ function App() {
               projectFilters={projectFilters}
               colorBy={colorBy}
               collapsedRows={collapsedRows} setCollapsedRows={setCollapsedRows}
-              onOpenCard={setInspector} />
+              onOpenCard={setInspector}
+              cardEdits={cardEdits}
+              onCardEdit={onCardEdit}
+              expandedCards={expandedCards}
+              toggleExpandCard={toggleExpandCard} />
 
             <div className="divider-h" onMouseDown={onDividerMouseDown} />
 
