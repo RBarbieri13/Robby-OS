@@ -15,9 +15,24 @@ Design `robby-os` handoff bundle. Runs as pure static HTML/CSS/JS (no build).
   2. `styles-v3.css` — density modes, topbar popovers, command palette
   3. `styles-v4.css` — v2 kanban hero headers, task card redesign
   4. `styles-v5-type.css` — typography (tabular nums, tracked labels)
-  5. `styles-v6-light.css` — **light-mode polish + layout refinements (the
-     latest changes live here).** Bump `?v=N` on the `<link>` in `index.html`
-     after edits or the browser will serve stale CSS.
+  5. `styles-v6-light.css` — light-mode polish + layout refinements
+  6. `theme-cognitive-calm.css` — **FINAL theme: 3-anchor structured
+     palette (warm paper / cool stone / ink) with sage accent, muted
+     per-project pastel hero tints, Fyxer-orange upright wordmark,
+     charcoal AI Brief badge.** Bump `?v=N` on the `<link>` in
+     `index.html` after edits or the browser will serve stale CSS.
+
+- **Active theme = Cognitive Calm.** The design explicitly uses three
+  color anchors that repeat across the interface:
+  - Warm paper `#faf8f2` → canvas, subbar, kanban, agenda, topbar
+  - Cool stone `#eceae2` → sidebar, insights strip, status bar
+  - Ink `#1b1c19` → text, primary buttons, AI Brief badge, wordmark (when not using brand orange)
+  - Sage green `#7a9178` → every active state (sidebar active item, today
+    columns in agenda + mini-month, focus rings, unread dots)
+  - Brand orange `#FF5733` → Robby OS wordmark only
+  - Per-project hero backgrounds: oklch 95% L / 0.014 C with unique hues
+    (work=230, personal=295, house=80, health=155, ai=20) + 2px left
+    bar in oklch 55% L of the same hue.
 
 ## Confirmed behaviors (verified in headless Chromium)
 

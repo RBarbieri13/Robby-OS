@@ -1,0 +1,449 @@
+/* ═════════════════════════════════════════════════════════════════════
+   MOCKUP A — "Cognitive Calm" (v2)
+   Structured three-anchor palette that repeats deliberately across the
+   interface. Replaces the earlier ad-hoc per-pane tints.
+
+   Anchors:
+     · Warm paper  #faf8f2 — canvas, subbar, kanban, agenda (the "rest")
+     · Cool stone  #eceae2 — sidebar, insights, status, pane-heads (chrome)
+     · Ink         #1b1c19 — primary text, primary buttons, AI Brief badge
+   Utilities:
+     · Sage        #7a9178 — every active state, primary accent
+     · Charcoal    #474740 — secondary text, borders
+     · Orange      #FF5733 — brand wordmark only
+
+   Loaded LAST. Overrides styles-v6-light.css wholesale.
+   ═════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&display=swap');
+
+:root {
+  --brand-orange: #FF5733;
+  --brand-orange-ink: #d63918;
+
+  /* Canonical palette — ONE place to edit */
+  --c-paper:  #faf8f2;   /* anchor 1 — warm paper */
+  --c-stone:  #eceae2;   /* anchor 2 — cool stone */
+  --c-ink:    #1b1c19;   /* anchor 3 — ink */
+  --c-sage:   #7a9178;   /* accent */
+  --c-sage-dim:  #5e7258;
+  --c-sage-tint: #e4ece3;
+  --c-char:   #474740;   /* secondary text */
+  --c-line:   #d4d1c7;   /* borders */
+  --c-line-2: #bdbaac;   /* strong borders */
+  --c-muted:  #8a8880;   /* tertiary text */
+
+  /* Project muted pastels — 95% l, 0.012 c, hue per project */
+  --proj-work:     oklch(95% 0.014 230);   /* periwinkle */
+  --proj-personal: oklch(95% 0.014 295);   /* lavender */
+  --proj-house:    oklch(95% 0.014  80);   /* butter */
+  --proj-health:   oklch(95% 0.014 155);   /* mint */
+  --proj-ai:       oklch(95% 0.014  20);   /* blush */
+
+  /* Project accents (the left 2px bar, the dot) — deeper but still muted */
+  --proj-work-ink:     oklch(55% 0.10 230);
+  --proj-personal-ink: oklch(55% 0.10 295);
+  --proj-house-ink:    oklch(55% 0.10  80);
+  --proj-health-ink:   oklch(55% 0.10 155);
+  --proj-ai-ink:       oklch(55% 0.10  20);
+}
+
+[data-theme="light"] {
+  --bg-canvas:          var(--c-line);           /* visible gutter between panes */
+  --pane-sidebar-bg:    var(--c-stone);
+  --pane-topbar-bg:     var(--c-paper);
+  --pane-subbar-bg:     var(--c-paper);
+  --pane-insights-bg:   var(--c-stone);
+  --pane-kanban-bg:     var(--c-paper);
+  --pane-agenda-bg:     var(--c-paper);
+  --pane-email-bg:      #f2f0ea;                 /* half-step between stone & paper */
+  --pane-status-bg:     var(--c-stone);
+
+  --bg-1:      #ffffff;
+  --bg-2:      #f5f3ee;
+  --bg-3:      #eae8e3;
+  --bg-4:      #e0ddd4;
+  --bg-5:      var(--c-line);
+
+  --hair:      var(--c-line);
+  --hair-2:    var(--c-line);
+  --hair-3:    var(--c-line-2);
+
+  --text-0: var(--c-ink);
+  --text-1: var(--c-ink);
+  --text-2: var(--c-char);
+  --text-3: var(--c-muted);
+  --text-4: #a8a69c;
+  --text-5: #c8c6bd;
+
+  --link:   var(--c-sage-dim);
+
+  --shadow-pane:
+    0 0 0 1px var(--c-line),
+    0 1px 2px rgba(30, 25, 10, 0.02);
+}
+
+/* ─── Canvas / shell ─── */
+[data-theme="light"] body,
+[data-theme="light"] html,
+[data-theme="light"] .app,
+[data-theme="light"] .main,
+[data-theme="light"] .workspace { background: var(--bg-canvas); }
+
+/* ─── Panes ─── */
+[data-theme="light"] .sidebar {
+  background: var(--c-stone);
+  border-right: 1px solid var(--c-line);
+  box-shadow: none;
+}
+[data-theme="light"] .topbar {
+  background: var(--c-paper);
+  border-bottom: 1px solid var(--c-line);
+}
+[data-theme="light"] .subbar {
+  background: var(--c-paper);
+  border-bottom: 1px solid var(--c-line);
+}
+[data-theme="light"] .insights-strip {
+  background: var(--c-stone);                    /* matches sidebar */
+  border-bottom: 1px solid var(--c-line);
+  box-shadow: none;
+}
+[data-theme="light"] .kanban-wrap,
+[data-theme="light"] .pane.kanban-wrap {
+  background: var(--c-paper);
+  border: 1px solid var(--c-line);
+  box-shadow: 0 1px 2px rgba(30, 25, 10, 0.02);
+}
+[data-theme="light"] .pane.agenda,
+[data-theme="light"] .agenda {
+  background: var(--c-paper);
+  border: 1px solid var(--c-line);
+  box-shadow: 0 1px 2px rgba(30, 25, 10, 0.02);
+}
+[data-theme="light"] .email-rail {
+  background: var(--pane-email-bg);
+  border: 1px solid var(--c-line);
+  box-shadow: 0 1px 2px rgba(30, 25, 10, 0.02);
+}
+[data-theme="light"] .statusbar {
+  background: var(--c-stone);                    /* matches sidebar */
+  border-top: 1px solid var(--c-line);
+  color: var(--c-char);
+}
+
+/* ─── Cards — no fill, 1px outlines ─── */
+[data-theme="light"] .tcard,
+[data-theme="light"] .card {
+  background: #ffffff;
+  border: 1px solid var(--c-line);
+  border-radius: 4px !important;
+  box-shadow: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+[data-theme="light"] .tcard:hover,
+[data-theme="light"] .card:hover {
+  border-color: var(--c-line-2);
+  box-shadow: 0 4px 12px -6px rgba(30, 25, 10, 0.08);
+}
+
+/* ─── Sidebar items ─── */
+[data-theme="light"] .side-item:hover,
+[data-theme="light"] .side-proj:hover {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+}
+[data-theme="light"] .side-item.active {
+  background: var(--c-sage-tint);
+  border-radius: 4px;
+  box-shadow: inset 2px 0 0 var(--c-sage);
+  color: var(--c-ink);
+  font-weight: 600;
+}
+[data-theme="light"] .side-item.active svg { color: var(--c-sage-dim); }
+[data-theme="light"] .side-label {
+  color: var(--c-muted);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+/* ─── Buttons — ghost default, ink primary ─── */
+[data-theme="light"] .btn {
+  background: transparent;
+  border: 1px solid var(--c-line);
+  color: var(--c-ink);
+  font-weight: 500;
+  border-radius: 4px !important;
+}
+[data-theme="light"] .btn:hover {
+  background: var(--c-sage-tint);
+  border-color: var(--c-line-2);
+}
+[data-theme="light"] .btn.primary,
+[data-theme="light"] .split-btn .sb-primary {
+  background: var(--c-ink);
+  border-color: var(--c-ink);
+  color: #ffffff;
+}
+[data-theme="light"] .btn.primary:hover,
+[data-theme="light"] .split-btn .sb-primary:hover {
+  background: #2c2d29;
+}
+
+/* ─── Segmented controls ─── */
+[data-theme="light"] .seg {
+  background: transparent;
+  border: 1px solid var(--c-line);
+  border-radius: 4px;
+}
+[data-theme="light"] .seg-item.active {
+  background: #ffffff;
+  border: 1px solid var(--c-line);
+}
+
+/* ─── Kanban project hero — each gets a unique muted pastel ─── */
+[data-theme="light"] .proj-hero {
+  border-radius: 4px !important;
+  border: 1px solid var(--c-line) !important;
+  box-shadow: none !important;
+  color: var(--c-ink) !important;
+  min-height: 0 !important;
+  padding: 7px 10px !important;
+}
+[data-theme="light"] .proj-hero .ph-name {
+  color: var(--c-ink) !important;
+  text-shadow: none !important;
+}
+[data-theme="light"] .proj-hero .ph-meta {
+  color: var(--c-char) !important;
+  opacity: 1 !important;
+}
+[data-theme="light"] .proj-hero .ph-meta b {
+  color: var(--c-ink) !important;
+}
+[data-theme="light"] .proj-hero .ph-trend {
+  color: var(--c-char) !important;
+  opacity: 0.65 !important;
+}
+[data-theme="light"] .proj-hero .ph-name .sw {
+  background: var(--accent, var(--c-char)) !important;
+  box-shadow: none !important;
+}
+
+/* Per-project background tints — target by adjacent proj-hero + nth-child.
+   This relies on the kanban head rendering 5 projects in a fixed order:
+   Work, Personal, House, Health, AI (from data.jsx). */
+[data-theme="light"] .kgrid-head .proj-hero:nth-of-type(1) {
+  background: var(--proj-work) !important;
+  border-left: 2px solid var(--proj-work-ink) !important;
+}
+[data-theme="light"] .kgrid-head .proj-hero:nth-of-type(2) {
+  background: var(--proj-personal) !important;
+  border-left: 2px solid var(--proj-personal-ink) !important;
+}
+[data-theme="light"] .kgrid-head .proj-hero:nth-of-type(3) {
+  background: var(--proj-house) !important;
+  border-left: 2px solid var(--proj-house-ink) !important;
+}
+[data-theme="light"] .kgrid-head .proj-hero:nth-of-type(4) {
+  background: var(--proj-health) !important;
+  border-left: 2px solid var(--proj-health-ink) !important;
+}
+[data-theme="light"] .kgrid-head .proj-hero:nth-of-type(5) {
+  background: var(--proj-ai) !important;
+  border-left: 2px solid var(--proj-ai-ink) !important;
+}
+/* Sparkline + due-bar (even though display:none via earlier slim-hero
+   rule, they remain targeted in case density changes) */
+[data-theme="light"] .proj-hero .ph-spark polyline {
+  stroke: var(--c-char) !important;
+}
+
+/* ─── AI Brief badge — HIGH legibility ink-on-paper pill ─── */
+[data-theme="light"] .insights-badge {
+  background: var(--c-ink) !important;
+  color: #ffffff !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase;
+  padding: 4px 10px 4px 9px !important;
+  border-right: none !important;
+  border-radius: 4px !important;
+  margin-right: 10px !important;
+}
+[data-theme="light"] .insights-badge svg { color: #ffffff !important; }
+[data-theme="light"] .insights-badge .pulse {
+  background: var(--c-sage) !important;
+  box-shadow: 0 0 0 3px rgba(122, 145, 120, 0.35) !important;
+}
+
+/* Insights summary text — darker ink since it's on the stone strip */
+[data-theme="light"] .insights-summary { color: var(--c-ink) !important; }
+[data-theme="light"] .is-item b { color: var(--c-ink) !important; }
+[data-theme="light"] .is-item.warn b { color: #8a6a20 !important; }
+[data-theme="light"] .is-item.hot  b { color: #a43a2a !important; }
+[data-theme="light"] .is-next b { color: var(--c-sage-dim) !important; }
+[data-theme="light"] .is-sep { color: var(--text-4) !important; }
+
+/* Insights "More" + "Replan day" buttons — match the theme */
+[data-theme="light"] .is-expand-btn {
+  background: #ffffff !important;
+  border: 1px solid var(--c-line) !important;
+  color: var(--c-ink) !important;
+}
+[data-theme="light"] .is-replan {
+  background: var(--c-ink) !important;
+  color: #ffffff !important;
+  border-color: var(--c-ink) !important;
+}
+
+/* ─── Status bar ─── */
+[data-theme="light"] .sb-dot { background: var(--c-muted); }
+[data-theme="light"] .sb-dot.ok { background: var(--c-sage); }
+[data-theme="light"] .sb-dot.focus { background: var(--c-char); }
+[data-theme="light"] .sb-label { color: var(--c-char) !important; }
+[data-theme="light"] .sb-sub   { color: var(--c-muted) !important; }
+
+/* ─── Agenda — today column sage-tinted, matching the accent system ─── */
+[data-theme="light"] .day-col.today {
+  background: var(--c-sage-tint);
+  box-shadow: inset 0 0 0 1px var(--c-sage);
+}
+[data-theme="light"] .agenda-head .ag-cell.today {
+  background: var(--c-sage) !important;
+  border-radius: 4px;
+}
+[data-theme="light"] .agenda-head .ag-cell.today .day-name,
+[data-theme="light"] .agenda-head .ag-cell.today .day-num { color: #ffffff !important; }
+[data-theme="light"] .now-line { background: var(--c-sage) !important; }
+
+/* ─── Email rail ─── */
+[data-theme="light"] .email-hero {
+  background: #ffffff !important;
+  border: 1px solid var(--c-line) !important;
+  color: var(--c-ink) !important;
+  box-shadow: none !important;
+}
+[data-theme="light"] .email-hero .eh-big { color: var(--c-ink) !important; }
+[data-theme="light"] .email-hero .eh-stat {
+  background: var(--c-paper) !important;
+  border: 1px solid var(--c-line) !important;
+  color: var(--c-ink) !important;
+}
+[data-theme="light"] .email-hero .eh-stat.urgent {
+  background: #f5e6e0 !important;
+  border-color: #dbbcb0 !important;
+  color: #a43a2a !important;
+}
+[data-theme="light"] .email-item-v2:hover { background: #ffffff !important; }
+[data-theme="light"] .email-item-v2 .ei-dot-unread { background: var(--c-sage) !important; }
+[data-theme="light"] .acct-pill.active {
+  background: var(--c-sage-tint) !important;
+  border-color: var(--c-sage) !important;
+  color: var(--c-sage-dim) !important;
+}
+[data-theme="light"] .acct-pill.all.active {
+  background: var(--c-ink) !important;
+  border-color: var(--c-ink) !important;
+  color: #ffffff !important;
+}
+
+/* ─── Mini-month ─── */
+[data-theme="light"] .mm-cell.today {
+  background: var(--c-sage) !important;
+  color: #ffffff !important;
+}
+[data-theme="light"] .mm-dot { background: var(--c-sage-dim) !important; }
+[data-theme="light"] .mm-cell.inwk { color: var(--c-ink) !important; }
+
+/* ─── Popovers ─── */
+[data-theme="light"] .tc-pop,
+[data-theme="light"] .sb-filter-pop,
+[data-theme="light"] .tb-pop,
+[data-theme="light"] .palette,
+[data-theme="light"] .inspector {
+  background: #ffffff;
+  border: 1px solid var(--c-line-2);
+  box-shadow: 0 4px 20px -4px rgba(30, 25, 10, 0.12);
+}
+
+/* Focus-visible ring — sage, not pure blue */
+*:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+input:focus-visible {
+  outline: none !important;
+  box-shadow:
+    0 0 0 2px var(--bg-canvas),
+    0 0 0 4px var(--c-sage) !important;
+}
+
+/* ─── Radii: 4px everywhere ─── */
+[data-theme="light"] .tcard,
+[data-theme="light"] .card,
+[data-theme="light"] .btn,
+[data-theme="light"] .acct-pill,
+[data-theme="light"] .email-item-v2,
+[data-theme="light"] .proj-hero { border-radius: 4px !important; }
+
+/* ─── Pane-head titles — Instrument Serif for editorial moments ─── */
+[data-theme="light"] .pane-head .title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+
+/* ─── Sidebar brand area — ties top-left to the top bar ─── */
+[data-theme="light"] .brand {
+  background: var(--c-stone);
+  border-bottom: 1px solid var(--c-line);
+}
+
+/* ─── Fyxer-style wordmark — UPRIGHT (no italic) ─── */
+.brand .brand-name {
+  font-family: 'Archivo', 'Inter', system-ui, sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 19px !important;
+  letter-spacing: -0.04em !important;
+  color: var(--brand-orange) !important;
+  text-transform: none !important;
+  font-style: normal !important;                /* upright */
+}
+.brand .brand-mark {
+  background: var(--brand-orange) !important;
+  border-radius: 4px !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Tweaks panel — match pane system */
+[data-theme="light"] .tweaks-panel {
+  background: #ffffff;
+  border: 1px solid var(--c-line-2);
+  box-shadow: 0 10px 30px -8px rgba(30, 25, 10, 0.14);
+}
+
+/* Search box — hollow, matches topbar */
+[data-theme="light"] .topbar .search {
+  background: var(--c-paper);
+  border: 1px solid var(--c-line);
+  color: var(--c-char);
+}
+[data-theme="light"] .topbar .kbd {
+  background: #ffffff;
+  border: 1px solid var(--c-line);
+  color: var(--c-char);
+}
+
+/* Pane-head icon + crumb text polish */
+[data-theme="light"] .crumb { color: var(--c-muted) !important; }
+[data-theme="light"] .crumb b { color: var(--c-ink) !important; }
+
+/* Scrollbars */
+[data-theme="light"] *::-webkit-scrollbar-thumb { background: var(--c-line-2); }
+[data-theme="light"] *::-webkit-scrollbar-thumb:hover { background: var(--c-muted); }
