@@ -58,6 +58,39 @@ function App() {
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
+  // ─── Resizable layout — sidebar width, email rail width, both
+  //     persisted to localStorage. Unbounded sidebar (min 40 for icons).
+  //     Double-click a resizer to reset to default. ───
+  const LS_LAYOUT = "robbyOS.layout.v1";
+  const LAYOUT_DEFAULTS = { railW: 180, emailW: 300 };
+  const [railW, setRailW]   = React.useState(() => {
+    try {
+      const o = JSON.parse(localStorage.getItem(LS_LAYOUT) || "{}");
+      return typeof o.railW === "number" ? o.railW : LAYOUT_DEFAULTS.railW;
+    } catch (_) { return LAYOUT_DEFAULTS.railW; }
+  });
+  const [emailW, setEmailW] = React.useState(() => {
+    try {
+      const o = JSON.parse(localStorage.getItem(LS_LAYOUT) || "{}");
+      return typeof o.emailW === "number" ? o.emailW : LAYOUT_DEFAULTS.emailW;
+    } catch (_) { return LAYOUT_DEFAULTS.emailW; }
+  });
+  React.useEffect(() => {
+    try {
+      const prior = JSON.parse(localStorage.getItem(LS_LAYOUT) || "{}");
+      localStorage.setItem(LS_LAYOUT, JSON.stringify({ ...prior, railW, emailW, kanbanFrac }));
+    } catch (_) {}
+  }, [railW, emailW, kanbanFrac]);
+
+  // Load persisted kanbanFrac on first mount
+  React.useEffect(() => {
+    try {
+      const o = JSON.parse(localStorage.getItem(LS_LAYOUT) || "{}");
+      if (typeof o.kanbanFrac === "number") setKanbanFrac(o.kanbanFrac);
+    } catch (_) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   React.useEffect(() => { document.body.setAttribute("data-theme", theme); }, [theme]);
   React.useEffect(() => { document.body.setAttribute("data-density", density); }, [density]);
 
@@ -159,13 +192,69 @@ function App() {
 
   const weekLabel = "Apr 21–27, 2026";
 
+  // App grid template — sidebar + resizer + main column. Resizer column
+  // is fixed 6px wide; sidebar width is dynamic.
+  const appStyle = railCollapsed
+    ? { gridTemplateColumns: `var(--rail-w-collapsed) 6px 1fr` }
+    : { gridTemplateColumns: `${railW}px 6px 1fr` };
+
+  // Workspace inner grid — center column + resizer + email rail.
+  // When collapsed, email rail locks to the narrow icon-stack width.
+  const workspaceStyle = emailCollapsed
+    ? { gridTemplateColumns: `1fr 6px 48px` }
+    : { gridTemplateColumns: `1fr 6px ${emailW}px` };
+
+  // Kanban↔Agenda horizontal resizer — wrap the existing divider with
+  // a fraction-setter so double-click resets and drag matches the
+  // Resizer component's pattern.
+  const kanbanFracRef = React.useRef(null);
+  const onKanbanFracChange = (absPx) => {
+    // absPx is the running sidebar- or email-width for vertical; for
+    // horizontal kanban we convert deltaPx on mousedown-registered
+    // startFrac. We use a custom drag here because the fraction is
+    // expressed in % of the center column height, not absolute pixels.
+    if (!kanbanFracRef.current) return;
+    const { topY, bottomY } = kanbanFracRef.current;
+    const f = Math.max(0.05, Math.min(0.95, (absPx - topY) / (bottomY - topY)));
+    setKanbanFrac(f);
+  };
+
+  const onHDividerMouseDown = (e) => {
+    e.preventDefault();
+    const centerEl = e.currentTarget.parentElement;
+    const rect = centerEl.getBoundingClientRect();
+    kanbanFracRef.current = { topY: rect.top, bottomY: rect.bottom };
+    document.body.classList.add("body-row-resize");
+    const onMove = (ev) => onKanbanFracChange(ev.clientY);
+    const onUp = () => {
+      document.body.classList.remove("body-row-resize");
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
   return (
-    <div className={"app " + (railCollapsed ? "rail-collapsed" : "") + (emailCollapsed ? " email-collapsed-outer" : "")}>
+    <div className={"app " + (railCollapsed ? "rail-collapsed" : "") + (emailCollapsed ? " email-collapsed-outer" : "")}
+         style={appStyle}>
       <window.Sidebar
         collapsed={railCollapsed} setCollapsed={setRailCollapsed}
         view={view} setView={setView}
         cockpitName={edits.cockpitName}
         projectFilters={projectFilters} setProjectFilters={setProjectFilters} />
+
+      {/* Sidebar ↔ main — vertical resizer (drag left/right).
+          Hidden when sidebar collapsed so users can't resize an icon rail. */}
+      {!railCollapsed ? (
+        <window.Resizer
+          orient="vertical"
+          value={railW}
+          onChange={setRailW}
+          min={40}
+          onReset={() => setRailW(LAYOUT_DEFAULTS.railW)}
+          title="Drag to resize sidebar · double-click to reset" />
+      ) : <div className="resizer-spacer" />}
 
       <div className="main">
         <window.TopBarV2
@@ -185,7 +274,8 @@ function App() {
 
         {showInsights ? <window.InsightsV2 onDismiss={() => setShowInsights(false)} /> : null}
 
-        <div className={"workspace " + (emailCollapsed ? "email-collapsed" : "")}>
+        <div className={"workspace " + (emailCollapsed ? "email-collapsed" : "")}
+             style={workspaceStyle}>
           <div className="center-col" style={centerStyle}>
             <window.KanbanV2
               projectFilters={projectFilters}
@@ -197,13 +287,35 @@ function App() {
               expandedCards={expandedCards}
               toggleExpandCard={toggleExpandCard} />
 
-            <div className="divider-h" onMouseDown={onDividerMouseDown} />
+            {/* Kanban ↔ Agenda — horizontal resizer */}
+            <div className="resizer resizer-horizontal"
+                 role="separator"
+                 aria-orientation="horizontal"
+                 title="Drag to resize · double-click to reset"
+                 onMouseDown={onHDividerMouseDown}
+                 onDoubleClick={(e) => { e.preventDefault(); setKanbanFrac(null); }}>
+              <div className="resizer-grip" />
+            </div>
 
             <window.AgendaV2
               weekLabel={weekLabel}
               projectFilters={projectFilters}
               onPrev={() => {}} onNext={() => {}} />
           </div>
+
+          {/* Center ↔ Email rail — vertical resizer (invert: drag left
+              reduces email width, drag right grows it). Hidden when
+              email rail is collapsed. */}
+          {!emailCollapsed ? (
+            <window.Resizer
+              orient="vertical"
+              value={emailW}
+              onChange={setEmailW}
+              min={40}
+              invert={true}
+              onReset={() => setEmailW(LAYOUT_DEFAULTS.emailW)}
+              title="Drag to resize email rail · double-click to reset" />
+          ) : <div className="resizer-spacer" />}
 
           <window.EmailRailV2
             collapsed={emailCollapsed} setCollapsed={setEmailCollapsed}

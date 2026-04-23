@@ -2641,3 +2641,120 @@ button[disabled],
 .tcard-compact { overflow: visible !important; }
 .tcard-compact .tcard-body { overflow: visible !important; }
 .kcell { overflow: visible; }
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   v6 · UNIVERSAL RESIZERS — drag any pane border
+   Every adjacent pane has a thin draggable handle. Hover shows a faint
+   accent; drag shows a strong accent. Double-click resets to default.
+   ═════════════════════════════════════════════════════════════════════ */
+
+/* The app-level inline grid-template-columns set in v2-app.jsx takes
+   precedence over the CSS rules that used to drive layout. We still
+   keep the base grid so a non-JS-rendered page has a shell. */
+.app {
+  display: grid;
+  grid-template-columns: var(--rail-w) 6px 1fr;
+  grid-template-rows: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+.app.rail-collapsed {
+  grid-template-columns: var(--rail-w-collapsed, 52px) 6px 1fr;
+}
+
+/* Workspace still has a 3-col grid (center / resizer / email-rail).
+   Inline style from React sets the exact widths. */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 6px 300px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Resizer — the handle between panes */
+.resizer {
+  position: relative;
+  z-index: 3;
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent;
+}
+.resizer-vertical {
+  width: 6px;
+  cursor: col-resize;
+  height: 100%;
+}
+.resizer-horizontal {
+  height: 6px;
+  cursor: row-resize;
+  width: 100%;
+}
+
+.resizer-grip {
+  position: absolute;
+  pointer-events: none;
+  transition: background 120ms ease;
+}
+.resizer-vertical .resizer-grip {
+  left: 2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+}
+.resizer-horizontal .resizer-grip {
+  top: 2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+}
+.resizer:hover .resizer-grip {
+  background: oklch(72% 0.06 82);   /* match hair-3 */
+}
+.resizer.dragging,
+.resizer:active {
+  background: oklch(70% 0.12 255 / 0.15);
+}
+.resizer.dragging .resizer-grip,
+.resizer:active .resizer-grip {
+  background: var(--link);
+}
+
+/* Global cursor lock during drag — prevents flicker */
+body.body-col-resize,
+body.body-col-resize * {
+  cursor: col-resize !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.body-row-resize,
+body.body-row-resize * {
+  cursor: row-resize !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Spacer placeholder when a resizer is hidden (keeps the grid cell) */
+.resizer-spacer {
+  width: 6px;
+  height: 100%;
+  background: transparent;
+}
+
+/* Remove the old divider-h rules by overriding — we now use .resizer-horizontal */
+.divider-h { display: none !important; }
+
+/* Pane margins need to accommodate the new resizers living in the grid.
+   The earlier rules put margin: 6px 6px on kanban-wrap etc to leave a
+   visible gutter. Now the resizers ARE the gutter, so trim the margins
+   adjacent to resizer columns. */
+[data-theme="light"] .kanban-wrap,
+[data-theme="light"] .pane.kanban-wrap { margin: 6px 0 0 6px; }
+[data-theme="light"] .pane.agenda,
+[data-theme="light"] .agenda { margin: 0 0 6px 6px; }
+[data-theme="light"] .email-rail { margin: 6px 6px 6px 0; }
+
+/* Tooltip on the handle — optional, lives in title attr */
+.resizer[title] { }
