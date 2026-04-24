@@ -2758,3 +2758,31 @@ body.body-row-resize * {
 
 /* Tooltip on the handle — optional, lives in title attr */
 .resizer[title] { }
+
+
+/* ═════════════════════════════════════════════════════════════════════
+   v6 · SIDEBAR SAFETY — always show icons, never fully hide
+   ═════════════════════════════════════════════════════════════════════ */
+
+/* The earlier rule `.sidebar { width: var(--rail-w) }` pinned the
+   sidebar element to the expanded width even when the app grid
+   collapsed its column to `--rail-w-collapsed`, leaving 128px of
+   sidebar clipped under the kanban. Make sidebar width follow the
+   actual grid track. */
+.sidebar {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* In the collapsed icon-only state we force the sidebar to the
+   icon-rail width so labels/counts never try to render in a sliver. */
+.app.rail-collapsed .sidebar {
+  width: var(--rail-w-collapsed, 52px);
+}
+
+/* The grid column track must never collapse below the icon-rail width,
+   even if the persisted railW is smaller than 52. */
+.app:not(.rail-collapsed) {
+  grid-template-columns: minmax(var(--rail-w-collapsed, 52px), auto) 6px 1fr;
+}

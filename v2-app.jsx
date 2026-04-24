@@ -280,7 +280,8 @@ function App() {
           orient="vertical"
           value={railW}
           onChange={setRailW}
-          min={40}
+          min={52}
+          max={400}
           onReset={() => setRailW(LAYOUT_DEFAULTS.railW)}
           title="Drag to resize sidebar · double-click to reset" />
       ) : <div className="resizer-spacer" />}
@@ -344,7 +345,8 @@ function App() {
               orient="vertical"
               value={emailW}
               onChange={setEmailW}
-              min={40}
+              min={48}
+              max={600}
               invert={true}
               onReset={() => setEmailW(LAYOUT_DEFAULTS.emailW)}
               title="Drag to resize email rail · double-click to reset" />
