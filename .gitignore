@@ -2,3 +2,8 @@
 *.log
 .playwright-mcp/
 node_modules/
+.gstack/
+.vercel/
+.env
+.env.local
+Claude Design/

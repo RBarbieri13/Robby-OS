@@ -7,14 +7,73 @@ const HOUR_PX     = 30;
 const hourToY = h => (h - HOURS_START) * HOUR_PX;
 
 function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
-  const { PROJECTS, AGENDA_EVENTS, AGENDA_TASKS } = window.DATA;
+  const { PROJECTS, AGENDA_TASKS } = window.DATA;
   const projMap = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
-  const today = 1;
+  const projIds = PROJECTS.map(p => p.id);
   const days  = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  const dates = ["21","22","23","24","25","26","27"];
 
-  const [events, setEvents] = React.useState(AGENDA_EVENTS);
+  const [apiData, setApiData] = React.useState(null);
+  const [loadState, setLoadState] = React.useState("loading"); // loading | live | empty | error
+  const [errorMsg, setErrorMsg] = React.useState(null);
+  const [events, setEvents] = React.useState([]);
   const [tasks, setTasks]   = React.useState(AGENDA_TASKS);
+
+  // Fetch the real calendar from /api/calendar — initial + every 60s.
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const r = await fetch("/api/calendar", { cache: "no-store" });
+        const j = await r.json();
+        if (cancelled) return;
+        if (j.error) {
+          setLoadState("error");
+          setErrorMsg(j.error);
+          return;
+        }
+        setApiData(j);
+        const monday = new Date(j.weekStart);
+        const dayMs = 24 * 3600 * 1000;
+        const mapped = (j.events || []).map(e => {
+          const s = new Date(e.start);
+          const en = new Date(e.end);
+          const dayIdx = Math.max(0, Math.min(6, Math.floor((s - monday) / dayMs)));
+          const startHour = s.getHours() + s.getMinutes() / 60;
+          let endHour = en.getHours() + en.getMinutes() / 60;
+          if (endHour <= startHour) endHour = startHour + 0.5;
+          const cn = (e.calendar || "").toLowerCase();
+          const project = projIds.find(pid => cn.includes(pid)) || projIds[0];
+          return { title: e.title, project, day: dayIdx, start: startHour, end: endHour, allDay: e.allDay, calendar: e.calendar };
+        }).filter(e => !e.allDay && e.end > HOURS_START && e.start < HOURS_END);
+        setEvents(mapped);
+        setLoadState(mapped.length ? "live" : "empty");
+        setErrorMsg(null);
+      } catch (err) {
+        if (cancelled) return;
+        setLoadState("error");
+        setErrorMsg((err && err.message) ? err.message : String(err));
+      }
+    }
+    load();
+    const id = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  const today = apiData ? apiData.todayIdx : new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+  const dates = React.useMemo(() => {
+    const base = apiData ? new Date(apiData.weekStart) : (() => {
+      const n = new Date();
+      const dow = n.getDay();
+      const off = dow === 0 ? -6 : 1 - dow;
+      const m = new Date(n); m.setDate(n.getDate() + off); m.setHours(0,0,0,0);
+      return m;
+    })();
+    return [0,1,2,3,4,5,6].map(i => {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      return String(d.getDate());
+    });
+  }, [apiData]);
   const [dragging, setDragging] = React.useState(null); // {kind,idx,origDay,origStart}
   const [ghost, setGhost]       = React.useState(null);   // {day,start,duration,title,project}
 
@@ -81,7 +140,13 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
         <I.Calendar className="icon-sm" style={{ color: "var(--text-2)" }} />
         <span className="title">Weekly Agenda</span>
         <span className="title-sub">· 7-day · 6a–10p</span>
-        <span className="count">{visibleEvents.length} events · {visibleTasks.length} drops</span>
+        <span className="count">
+          {visibleEvents.length} events · {visibleTasks.length} drops
+          {loadState === "loading" ? <span style={{ marginLeft: 8, color: "var(--text-3)" }}>· loading…</span> : null}
+          {loadState === "live"    ? <span style={{ marginLeft: 8, color: "var(--c-sage-dim, #5e7258)" }}>· live</span> : null}
+          {loadState === "empty"   ? <span style={{ marginLeft: 8, color: "var(--text-3)" }}>· empty week</span> : null}
+          {loadState === "error"   ? <span style={{ marginLeft: 8, color: "#a43a2a" }} title={errorMsg || ""}>· calendar error</span> : null}
+        </span>
         <button className="chev-btn" onClick={onPrev} style={{ marginLeft: 6 }} aria-label="Previous week" title="Previous week">
           <I.ChevL className="icon-sm" />
         </button>

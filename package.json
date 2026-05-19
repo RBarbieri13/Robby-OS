@@ -1,0 +1,14 @@
+{
+  "name": "robby-os",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Robby OS — Cockpit. Static UI + Vercel serverless calendar bridge.",
+  "scripts": {
+    "dev": "vercel dev --listen 8765",
+    "start": "vercel dev --listen 8765"
+  },
+  "dependencies": {
+    "ical.js": "^2.1.0",
+    "tsdav": "^2.1.5"
+  }
+}
