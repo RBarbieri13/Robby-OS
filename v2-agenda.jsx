@@ -6,6 +6,26 @@ const HOURS_END   = 22;
 const HOUR_PX     = 30;
 const hourToY = h => (h - HOURS_START) * HOUR_PX;
 
+// Calendar-name → project mapping. iCloud calendars rarely match project IDs
+// verbatim, so we keyword-match. First hit wins; fallback is "personal".
+const PROJECT_KEYWORDS = {
+  work:     ["work", "office", "numotion", "job"],
+  personal: ["personal", "icloud", "family", "friends"],
+  house:    ["house", "home", "chores"],
+  health:   ["health", "doctor", "medical", "gym", "fitness", "pt", "dr."],
+  ai:       ["ai", "claude", "dev", "code"],
+};
+function calendarToProject(calName, validProjIds) {
+  const cn = (calName || "").toLowerCase();
+  for (const pid of validProjIds) {
+    const kws = PROJECT_KEYWORDS[pid];
+    if (kws && kws.some(k => cn.includes(k))) return pid;
+  }
+  return validProjIds.includes("personal") ? "personal" : validProjIds[0];
+}
+
+const CAL_CACHE_KEY = "robbyos.calendar.v1";
+
 function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
   const { PROJECTS, AGENDA_TASKS } = window.DATA;
   const projMap = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
@@ -19,8 +39,43 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
   const [tasks, setTasks]   = React.useState(AGENDA_TASKS);
 
   // Fetch the real calendar from /api/calendar — initial + every 60s.
+  // Warm-start: paint the previous response from localStorage immediately so a
+  // cold reload isn't a 3s blank week, then refresh in the background.
   React.useEffect(() => {
     let cancelled = false;
+    function mapPayload(j) {
+      const monday = new Date(j.weekStart);
+      const dayMs = 24 * 3600 * 1000;
+      return (j.events || []).map(e => {
+        const s = new Date(e.start);
+        const en = new Date(e.end);
+        const dayIdx = Math.max(0, Math.min(6, Math.floor((s - monday) / dayMs)));
+        const startHour = s.getHours() + s.getMinutes() / 60;
+        let endHour = en.getHours() + en.getMinutes() / 60;
+        if (endHour <= startHour) endHour = startHour + 0.5;
+        const project = calendarToProject(e.calendar, projIds);
+        return { title: e.title, project, day: dayIdx, start: startHour, end: endHour, allDay: e.allDay, calendar: e.calendar };
+      }).filter(e => !e.allDay && e.end > HOURS_START && e.start < HOURS_END);
+    }
+    try {
+      const cached = localStorage.getItem(CAL_CACHE_KEY);
+      if (cached) {
+        const j = JSON.parse(cached);
+        // Only use cache if it covers the current week.
+        const monday = new Date(j.weekStart);
+        const now = new Date();
+        const dow = now.getDay();
+        const off = dow === 0 ? -6 : 1 - dow;
+        const thisMonday = new Date(now); thisMonday.setDate(now.getDate() + off); thisMonday.setHours(0,0,0,0);
+        if (Math.abs(monday - thisMonday) < 24 * 3600 * 1000) {
+          setApiData(j);
+          const mapped = mapPayload(j);
+          setEvents(mapped);
+          setLoadState(mapped.length ? "live" : "empty");
+        }
+      }
+    } catch (_) { /* cache miss is fine */ }
+
     async function load() {
       try {
         const r = await fetch("/api/calendar", { cache: "no-store" });
@@ -32,22 +87,11 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
           return;
         }
         setApiData(j);
-        const monday = new Date(j.weekStart);
-        const dayMs = 24 * 3600 * 1000;
-        const mapped = (j.events || []).map(e => {
-          const s = new Date(e.start);
-          const en = new Date(e.end);
-          const dayIdx = Math.max(0, Math.min(6, Math.floor((s - monday) / dayMs)));
-          const startHour = s.getHours() + s.getMinutes() / 60;
-          let endHour = en.getHours() + en.getMinutes() / 60;
-          if (endHour <= startHour) endHour = startHour + 0.5;
-          const cn = (e.calendar || "").toLowerCase();
-          const project = projIds.find(pid => cn.includes(pid)) || projIds[0];
-          return { title: e.title, project, day: dayIdx, start: startHour, end: endHour, allDay: e.allDay, calendar: e.calendar };
-        }).filter(e => !e.allDay && e.end > HOURS_START && e.start < HOURS_END);
+        const mapped = mapPayload(j);
         setEvents(mapped);
         setLoadState(mapped.length ? "live" : "empty");
         setErrorMsg(null);
+        try { localStorage.setItem(CAL_CACHE_KEY, JSON.stringify(j)); } catch (_) { /* quota */ }
       } catch (err) {
         if (cancelled) return;
         setLoadState("error");
