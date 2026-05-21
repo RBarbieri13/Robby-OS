@@ -47,7 +47,7 @@ function AcctMark({ id, size = 18 }) {
   return null;
 }
 
-function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
+function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail, onAddTask }) {
   // Default to synthetic data so the rail renders instantly on cold load;
   // /api/mail fetch hydrates / replaces in the background. Mirrors the
   // calendar warm-start pattern in v2-agenda.jsx.
@@ -127,7 +127,17 @@ function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
     setSavedToFolder(s => ({ ...s, [id]: folder }));
     setFolderPickerFor(null);
   };
-  const toTask = (id) => setConvertedTasks(t => t.includes(id) ? t : [...t, id]);
+  const toTask = (id, subj, sentiment) => {
+    if (convertedTasks.includes(id)) return;
+    setConvertedTasks(t => [...t, id]);
+    // Create a real task in the kanban. Maps email sentiment → task
+    // priority and files everything under "personal" since the email's
+    // origin account doesn't imply a project.
+    const priority = sentiment === "urgent" || sentiment === "blocking" ? "high"
+                   : sentiment === "normal" ? "low"
+                   : "med";
+    onAddTask?.("✉ " + (subj || "(untitled email)"), "personal", priority);
+  };
 
   return (
     <div className="email-rail" data-screen-label="Inbox">
@@ -288,21 +298,16 @@ function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
                         </div>
                       ) : null}
 
-                      {/* Expanded view */}
+                      {/* Expanded view — shows the AI-summarized snippet
+                          (the actual triage signal). Full message body
+                          retrieval lands when Gmail OAuth is wired. */}
                       {isOpen ? (
                         <div className="ei-preview" onClick={e => e.stopPropagation()}>
-                          <div className="eip-body">
-                            {m.snippet} Adding more context here: the ask is specific, the timing is tight, and the downstream dependencies are nontrivial. Happy to jump on a quick call before EOD if it's easier than async.
-                          </div>
-                          <div className="eip-ai">
-                            <I.Sparkles className="icon-xs" /> <span>AI suggests: confirm tonight, attach v3 deck, loop in Finance.</span>
-                          </div>
+                          <div className="eip-body">{m.snippet}</div>
                           <div className="eip-actions">
-                            <button className="btn primary"><I.Reply className="icon-xs" /> Reply</button>
-                            <button className="btn">Reply all</button>
-                            <button className="btn">Forward</button>
-                            <div className="spacer" />
-                            <button className="btn ghost">Archive</button>
+                            <button className="btn primary" onClick={() => toTask(m.id, m.subj, m.sentiment)} disabled={toTaskOn}>
+                              <I.CheckSquare className="icon-xs" /> {toTaskOn ? "Added to tasks" : "Add as task"}
+                            </button>
                           </div>
                         </div>
                       ) : null}
@@ -316,8 +321,9 @@ function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
                         <I.Folder className="icon-xs" />
                       </button>
                       <button className={"ei-act " + (toTaskOn ? "on" : "")}
-                              onClick={() => toTask(m.id)}
-                              title="Convert to task">
+                              onClick={() => toTask(m.id, m.subj, m.sentiment)}
+                              title={toTaskOn ? "Already added as task" : "Convert to task"}
+                              disabled={toTaskOn}>
                         <I.CheckSquare className="icon-xs" />
                       </button>
                       <button className="ei-act" title="Snooze"><I.Clock className="icon-xs" /></button>

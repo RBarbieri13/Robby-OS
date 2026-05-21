@@ -513,7 +513,8 @@ function App() {
 
           <window.EmailRailV2
             collapsed={emailCollapsed} setCollapsed={setEmailCollapsed}
-            openedEmail={openedEmail} setOpenedEmail={setOpenedEmail} />
+            openedEmail={openedEmail} setOpenedEmail={setOpenedEmail}
+            onAddTask={onAddTask} />
         </div>
 
         <window.StatusBarV2
