@@ -1,7 +1,7 @@
 /* global React, I */
 // Top bar (breadcrumb + search + utilities) and sub bar (week nav + filters).
 
-function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalette, onOpenLayouts, layoutPreset, density, setDensity, onAddTask, projects }) {
+function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalette, onOpenLayouts, layoutPreset, density, setDensity, onAddTask, onAddNote, projects }) {
   const viewLabel = {
     cockpit: cockpitName,
     inbox: "Inbox",
@@ -17,8 +17,9 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
   const [notifOpen, setNotifOpen]   = React.useState(false);
   const [viewOpen, setViewOpen]     = React.useState(false);
 
-  // Quick Add inline composer state. Captures title + project; on Enter,
-  // calls onAddTask and resets. Project defaults to first in the list.
+  // Quick Add inline composer state. Captures kind (task|note) + title +
+  // project (+ priority for tasks); Enter submits.
+  const [addKind, setAddKind]       = React.useState("task"); // "task" | "note"
   const [addTitle, setAddTitle]     = React.useState("");
   const [addProject, setAddProject] = React.useState(() => (projects && projects[0]?.id) || "personal");
   const [addPriority, setAddPriority] = React.useState("med");
@@ -29,10 +30,14 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
       requestAnimationFrame(() => addInputRef.current?.focus());
     }
   }, [addOpen]);
-  const submitAddTask = () => {
+  const submitAdd = () => {
     const v = addTitle.trim();
     if (!v) return;
-    onAddTask?.(v, addProject, addPriority);
+    if (addKind === "note") {
+      onAddNote?.(v, addProject);
+    } else {
+      onAddTask?.(v, addProject, addPriority);
+    }
     setAddTitle("");
     setAddPriority("med");
     setAddOpen(false);
@@ -80,17 +85,26 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
           </button>
           {addOpen ? (
             <div className="tb-pop" style={{ minWidth: 320 }}>
-              <div className="tbp-section">New task</div>
-              <div style={{ padding: "6px 10px 10px" }}>
+              <div style={{ display: "flex", gap: 4, padding: "8px 10px 0" }}>
+                {[["task","Task"],["note","Note"]].map(([k, label]) => (
+                  <button key={k}
+                          className={"btn " + (addKind === k ? "primary" : "")}
+                          onClick={() => { setAddKind(k); requestAnimationFrame(() => addInputRef.current?.focus()); }}
+                          style={{ padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ padding: "8px 10px 10px" }}>
                 <input
                   ref={addInputRef}
                   className="qa-input"
                   type="text"
-                  placeholder="What needs to happen?"
+                  placeholder={addKind === "note" ? "Note title…" : "What needs to happen?"}
                   value={addTitle}
                   onChange={(e) => setAddTitle(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") { e.preventDefault(); submitAddTask(); }
+                    if (e.key === "Enter") { e.preventDefault(); submitAdd(); }
                     if (e.key === "Escape") { setAddOpen(false); }
                   }}
                   style={{
@@ -124,28 +138,30 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
-                  <select
-                    value={addPriority}
-                    onChange={(e) => setAddPriority(e.target.value)}
-                    style={{
-                      padding: "6px 8px",
-                      border: "2px solid var(--hair-2, #d6d2c4)",
-                      borderRadius: 6,
-                      fontFamily: "inherit",
-                      fontSize: 12,
-                      background: "var(--bg-1, #fff)",
-                      color: "var(--text-1, #1b1c19)",
-                    }}
-                    aria-label="Priority"
-                  >
-                    <option value="high">High</option>
-                    <option value="med">Med</option>
-                    <option value="low">Low</option>
-                  </select>
+                  {addKind === "task" ? (
+                    <select
+                      value={addPriority}
+                      onChange={(e) => setAddPriority(e.target.value)}
+                      style={{
+                        padding: "6px 8px",
+                        border: "2px solid var(--hair-2, #d6d2c4)",
+                        borderRadius: 6,
+                        fontFamily: "inherit",
+                        fontSize: 12,
+                        background: "var(--bg-1, #fff)",
+                        color: "var(--text-1, #1b1c19)",
+                      }}
+                      aria-label="Priority"
+                    >
+                      <option value="high">High</option>
+                      <option value="med">Med</option>
+                      <option value="low">Low</option>
+                    </select>
+                  ) : null}
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, marginTop: 10 }}>
                   <button className="btn" onClick={() => setAddOpen(false)} style={{ padding: "4px 10px", fontSize: 12 }}>Cancel</button>
-                  <button className="btn primary" onClick={submitAddTask} disabled={!addTitle.trim()} style={{ padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
+                  <button className="btn primary" onClick={submitAdd} disabled={!addTitle.trim()} style={{ padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
                     Add <span className="kbd" style={{ marginLeft: 4 }}>↵</span>
                   </button>
                 </div>

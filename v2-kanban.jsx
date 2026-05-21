@@ -297,12 +297,22 @@ function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInsp
   );
 }
 
-function NoteCard({ n, accent }) {
+function NoteCard({ n, accent, onDelete }) {
   return (
-    <div className="card note" style={{ "--accent": accent }}>
+    <div className="card note" style={{ "--accent": accent, position: "relative" }}>
       <div className="card-top">
         <I.FileText className="card-icon icon-sm" />
         <span className="title-text">{n.title}</span>
+        {onDelete ? (
+          <button
+            className="tcard-del tcard-expand"
+            aria-label="Delete note"
+            title="Delete"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            style={{ marginLeft: "auto" }}>
+            <I.X className="icon-xs" />
+          </button>
+        ) : null}
       </div>
       <div className="note-snippet">{n.snippet}</div>
       <div className="card-meta">
@@ -354,17 +364,17 @@ function CardFor({ row, item, accent, isHero, project, expanded, onToggleExpand,
                                          onEdit={onEdit}
                                          onInspect={onInspect}
                                          onDelete={onDelete} />;
-  if (row === "notes")  return <NoteCard  n={item} accent={accent} project={project} />;
+  if (row === "notes")  return <NoteCard  n={item} accent={accent} project={project} onDelete={onDelete} />;
   if (row === "events") return <EventCard e={item} accent={accent} project={project} />;
   if (row === "goals")  return <GoalCard  g={item} accent={accent} hero={isHero} project={project} />;
   return null;
 }
 
-function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder, userTasks, onDeleteTask }) {
+function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder, userTasks, userNotes, onDeleteTask, onDeleteNote }) {
   const { PROJECTS, TASKS, NOTES, EVENTS_ROW, GOALS } = window.DATA;
-  // Merge synthetic tasks with user-added tasks (from localStorage via App).
-  // User-added tasks appear FIRST in each project column so they're visible
-  // immediately after creation.
+  // Merge synthetic tasks/notes with user-added ones (from localStorage via
+  // App). User-added items appear FIRST in each project column so they're
+  // visible immediately after creation.
   const mergedTasks = React.useMemo(() => {
     if (!userTasks) return TASKS;
     const out = { ...TASKS };
@@ -373,7 +383,15 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
     }
     return out;
   }, [userTasks, TASKS]);
-  const sources = { tasks: mergedTasks, notes: NOTES, events: EVENTS_ROW, goals: GOALS };
+  const mergedNotes = React.useMemo(() => {
+    if (!userNotes) return NOTES;
+    const out = { ...NOTES };
+    for (const pid of Object.keys(userNotes)) {
+      out[pid] = [...(userNotes[pid] || []), ...(NOTES[pid] || [])];
+    }
+    return out;
+  }, [userNotes, NOTES]);
+  const sources = { tasks: mergedTasks, notes: mergedNotes, events: EVENTS_ROW, goals: GOALS };
   const projects = PROJECTS.filter(p => projectFilters.includes(p.id));
   const cols = projects.length;
 
@@ -623,7 +641,13 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
                                   onToggleExpand={() => toggleExpandCard?.(item.id)}
                                   onEdit={(field, value) => onCardEdit?.(item.id, field, value)}
                                   onInspect={() => onOpenCard?.({ row: row.id, data: mergedItem, project: p })}
-                                  onDelete={mergedItem.userAdded ? () => onDeleteTask?.(item.id) : null}
+                                  onDelete={
+                                    mergedItem.userAdded
+                                      ? (row.id === "tasks" ? () => onDeleteTask?.(item.id)
+                                        : row.id === "notes" ? () => onDeleteNote?.(item.id)
+                                        : null)
+                                      : null
+                                  }
                                 />
                               </div>
                             );

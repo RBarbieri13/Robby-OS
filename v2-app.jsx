@@ -80,12 +80,18 @@ function App() {
     catch (_) { return {}; }
   });
 
-  // User-added tasks, keyed by projectId. Stored separately from cardEdits
-  // because the cards don't exist in window.DATA yet — they're net-new.
+  // User-added tasks/notes, keyed by projectId. Stored separately from
+  // cardEdits because the cards don't exist in window.DATA yet — they're
+  // net-new.
   // Shape: { [projectId]: [{ id, title, priority, due?, done, createdAt }] }
   const LS_USER_TASKS = "robbyOS.userTasks.v1";
+  const LS_USER_NOTES = "robbyOS.userNotes.v1";
   const [userTasks, setUserTasks] = React.useState(() => {
     try { return JSON.parse(localStorage.getItem(LS_USER_TASKS) || "{}"); }
+    catch (_) { return {}; }
+  });
+  const [userNotes, setUserNotes] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_USER_NOTES) || "{}"); }
     catch (_) { return {}; }
   });
 
@@ -101,6 +107,9 @@ function App() {
   React.useEffect(() => {
     try { localStorage.setItem(LS_USER_TASKS, JSON.stringify(userTasks)); } catch (_) {}
   }, [userTasks]);
+  React.useEffect(() => {
+    try { localStorage.setItem(LS_USER_NOTES, JSON.stringify(userNotes)); } catch (_) {}
+  }, [userNotes]);
 
   const onAddTask = React.useCallback((title, projectId, priority) => {
     const t = (title || "").trim();
@@ -127,6 +136,35 @@ function App() {
       let changed = false;
       for (const pid of Object.keys(prev)) {
         const remaining = (prev[pid] || []).filter(t => t.id !== id);
+        if (remaining.length !== (prev[pid] || []).length) changed = true;
+        if (remaining.length) next[pid] = remaining;
+      }
+      return changed ? next : prev;
+    });
+  }, []);
+
+  const onAddNote = React.useCallback((title, projectId) => {
+    const t = (title || "").trim();
+    if (!t) return;
+    const pid = projectId || "personal";
+    const id = "un-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+    const newNote = {
+      id,
+      title: t,
+      snippet: "",
+      updated: "just now",
+      createdAt: new Date().toISOString(),
+      userAdded: true,
+    };
+    setUserNotes(prev => ({ ...prev, [pid]: [newNote, ...(prev[pid] || [])] }));
+  }, []);
+
+  const onDeleteNote = React.useCallback((id) => {
+    setUserNotes(prev => {
+      const next = {};
+      let changed = false;
+      for (const pid of Object.keys(prev)) {
+        const remaining = (prev[pid] || []).filter(n => n.id !== id);
         if (remaining.length !== (prev[pid] || []).length) changed = true;
         if (remaining.length) next[pid] = remaining;
       }
@@ -407,6 +445,7 @@ function App() {
           onOpenTweaks={() => setTweaksOpen(o => !o)}
           onOpenPalette={() => setPaletteOpen(true)}
           onAddTask={onAddTask}
+          onAddNote={onAddNote}
           projects={window.DATA.PROJECTS}
           density={density} setDensity={setDensity} />
 
@@ -436,7 +475,9 @@ function App() {
               cardOrder={cardOrder}
               onReorder={onReorderCards}
               userTasks={userTasks}
-              onDeleteTask={onDeleteTask} />
+              userNotes={userNotes}
+              onDeleteTask={onDeleteTask}
+              onDeleteNote={onDeleteNote} />
 
             {/* Kanban ↔ Agenda — horizontal resizer */}
             <div className="resizer resizer-horizontal"
