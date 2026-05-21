@@ -32,7 +32,12 @@ function Sidebar({ collapsed, setCollapsed, view, setView, cockpitName, projectF
         {navPrimary.map(n => (
           <div key={n.id}
                className={"side-item " + (view === n.id ? "active" : "")}
-               onClick={() => setView(n.id)}>
+               role="button"
+               tabIndex={0}
+               aria-label={"Go to " + n.label}
+               aria-current={view === n.id ? "page" : undefined}
+               onClick={() => setView(n.id)}
+               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setView(n.id); } }}>
             <n.icon className="side-icon" />
             <span>{n.label}</span>
             {n.badge ? <span className="badge">{n.badge}</span> : null}
@@ -45,7 +50,12 @@ function Sidebar({ collapsed, setCollapsed, view, setView, cockpitName, projectF
         {navModules.map(n => (
           <div key={n.id}
                className={"side-item " + (view === n.id ? "active" : "")}
-               onClick={() => setView(n.id)}>
+               role="button"
+               tabIndex={0}
+               aria-label={"Go to " + n.label}
+               aria-current={view === n.id ? "page" : undefined}
+               onClick={() => setView(n.id)}
+               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setView(n.id); } }}>
             <n.icon className="side-icon" />
             <span>{n.label}</span>
             {n.count != null ? <span className="count">{n.count}</span> : null}

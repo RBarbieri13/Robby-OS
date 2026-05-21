@@ -148,10 +148,20 @@ function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInsp
   return (
     <div className={"tcard tcard-compact " + (t.done ? "done " : "") + (expanded ? "expanded " : "") + "u-" + urgencyClass}
          style={{ "--accent": accent }}
+         role="button"
+         tabIndex={0}
+         aria-label={"Open task: " + (t.title || "(untitled)")}
          onClick={(e) => {
            // Card body → Inspector (unless click landed on an interactive el)
            if (e.target.closest(".tc-edit, .tcard-expand, .checkbox")) return;
            onInspect?.();
+         }}
+         onKeyDown={(e) => {
+           if (e.target !== e.currentTarget) return;
+           if (e.key === "Enter" || e.key === " ") {
+             e.preventDefault();
+             onInspect?.();
+           }
          }}>
       <div className="tcard-rail" />
       <div className="tcard-body">
