@@ -9,22 +9,58 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showStatusBar": true
 }/*EDITMODE-END*/;
 
+// ─── Persisted UI preferences (single bundled key) ─────────────────────
+// Anything in this bundle survives a reload. Things deliberately not
+// persisted: paletteOpen, inspector, openedEmail, tweaksOpen (all
+// session-ephemeral overlays).
+const LS_UI = "robbyOS.ui.v1";
+const UI_DEFAULTS = {
+  view: "cockpit",
+  theme: "light",
+  railCollapsed: false,
+  emailCollapsed: false,
+  density: "comfortable",
+  showInsights: true,
+  colorBy: "project",
+  projectFilters: ["work", "personal", "house", "health", "ai"],
+  collapsedRows: [],
+};
+function loadUI() {
+  try {
+    const o = JSON.parse(localStorage.getItem(LS_UI) || "{}");
+    return { ...UI_DEFAULTS, ...o };
+  } catch (_) {
+    return { ...UI_DEFAULTS };
+  }
+}
+
 function App() {
-  const [view, setView] = React.useState("cockpit");
-  const [theme, setTheme] = React.useState("light");
-  const [railCollapsed, setRailCollapsed] = React.useState(TWEAK_DEFAULTS.railCollapsed);
-  const [projectFilters, setProjectFilters] = React.useState(["work","personal","house","health","ai"]);
-  const [colorBy, setColorBy] = React.useState(TWEAK_DEFAULTS.defaultColorBy);
-  const [collapsedRows, setCollapsedRows] = React.useState([]);
-  const [emailCollapsed, setEmailCollapsed] = React.useState(false);
+  const UI0 = React.useMemo(loadUI, []);
+  const [view, setView] = React.useState(UI0.view);
+  const [theme, setTheme] = React.useState(UI0.theme);
+  const [railCollapsed, setRailCollapsed] = React.useState(UI0.railCollapsed != null ? UI0.railCollapsed : TWEAK_DEFAULTS.railCollapsed);
+  const [projectFilters, setProjectFilters] = React.useState(UI0.projectFilters);
+  const [colorBy, setColorBy] = React.useState(UI0.colorBy || TWEAK_DEFAULTS.defaultColorBy);
+  const [collapsedRows, setCollapsedRows] = React.useState(UI0.collapsedRows || []);
+  const [emailCollapsed, setEmailCollapsed] = React.useState(UI0.emailCollapsed);
   const [kanbanFrac, setKanbanFrac] = React.useState(null);
   const [tweaksOpen, setTweaksOpen] = React.useState(false);
   const [edits, setEdits] = React.useState(TWEAK_DEFAULTS);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [inspector, setInspector] = React.useState(null);
   const [openedEmail, setOpenedEmail] = React.useState(null);
-  const [density, setDensity] = React.useState(TWEAK_DEFAULTS.density);
-  const [showInsights, setShowInsights] = React.useState(TWEAK_DEFAULTS.showInsights);
+  const [density, setDensity] = React.useState(UI0.density || TWEAK_DEFAULTS.density);
+  const [showInsights, setShowInsights] = React.useState(UI0.showInsights != null ? UI0.showInsights : TWEAK_DEFAULTS.showInsights);
+
+  // Persist the UI bundle on any change.
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(LS_UI, JSON.stringify({
+        view, theme, railCollapsed, emailCollapsed, density, showInsights,
+        colorBy, projectFilters, collapsedRows,
+      }));
+    } catch (_) {}
+  }, [view, theme, railCollapsed, emailCollapsed, density, showInsights, colorBy, projectFilters, collapsedRows]);
 
   // ─── Card edits + expanded state + reorder map — all persisted ───
   const LS_EDITS    = "robbyOS.cardEdits.v1";
