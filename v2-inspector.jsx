@@ -1,12 +1,47 @@
 /* global React, I */
 // Card inspector — right-side detail panel, slides over workspace.
 
-function Inspector({ item, onClose }) {
+function relativeTime(iso) {
+  if (!iso) return null;
+  const ms = Date.now() - new Date(iso).getTime();
+  if (ms < 0 || !Number.isFinite(ms)) return null;
+  const s = Math.round(ms / 1000);
+  if (s < 60) return s + "s ago";
+  const m = Math.round(s / 60);
+  if (m < 60) return m + "m ago";
+  const h = Math.round(m / 60);
+  if (h < 24) return h + "h ago";
+  return Math.round(h / 24) + "d ago";
+}
+
+function Inspector({ item, onClose, onEdit, onDelete, cardEdits }) {
   if (!item) return null;
-  const { row, data, project } = item;
+  const { row, project } = item;
+  // Re-merge cardEdits on every render so Mark-done immediately reflects
+  // in the visible state — the parent passes a snapshot at click-time, but
+  // localStorage edits flow through `cardEdits` reactively.
+  const baseData = item.data;
+  const liveEdits = (cardEdits && cardEdits[baseData?.id]) || {};
+  const data = { ...baseData, ...liveEdits };
 
   const rowLabel = { tasks: "Task", notes: "Note", events: "Event", goals: "Goal" }[row];
   const RowIcon = { tasks: I.CheckSquare, notes: I.FileText, events: I.Calendar, goals: I.Target }[row];
+
+  const isTask = row === "tasks";
+  const canEdit = isTask && typeof onEdit === "function";
+  const canDelete = isTask && typeof onDelete === "function" && data.userAdded;
+  const createdRel = data.createdAt ? relativeTime(data.createdAt) : null;
+
+  const handleMarkDone = () => {
+    if (!canEdit) return;
+    onEdit(data.id, "done", !data.done);
+    // Keep panel open so user sees the state change; close button is the next step
+  };
+  const handleDelete = () => {
+    if (!canDelete) return;
+    onDelete(data.id);
+    onClose?.();
+  };
 
   return (
     <div className="inspector-scrim" onClick={onClose}>
@@ -16,13 +51,13 @@ function Inspector({ item, onClose }) {
             <RowIcon className="icon-xs" /> {rowLabel}
           </div>
           <div className="spacer" />
-          <button className="ic-btn" title="Pin"><I.Star className="icon-sm" /></button>
-          <button className="ic-btn" title="Pop out"><I.PopOut className="icon-sm" /></button>
-          <button className="ic-btn" onClick={onClose} title="Close"><I.X className="icon-sm" /></button>
+          <button className="ic-btn" onClick={onClose} title="Close (Esc)"><I.X className="icon-sm" /></button>
         </div>
 
         <div className="insp-body">
-          <h2 className="insp-title">{data.title}</h2>
+          <h2 className="insp-title" style={data.done ? { textDecoration: "line-through", color: "var(--text-3)" } : {}}>
+            {data.title}
+          </h2>
 
           <div className="insp-meta">
             {project ? (
@@ -45,6 +80,9 @@ function Inspector({ item, onClose }) {
             {data.updated ? (
               <span className="insp-pill">Updated {data.updated}</span>
             ) : null}
+            {data.userAdded ? (
+              <span className="insp-pill" title="Added via Quick Add">user-added</span>
+            ) : null}
           </div>
 
           {data.snippet ? (
@@ -65,31 +103,26 @@ function Inspector({ item, onClose }) {
             </div>
           ) : null}
 
-          <div className="insp-section">
-            <div className="insp-label">Activity</div>
-            <div className="insp-activity">
-              <div className="ia-row"><span className="ia-dot" /> You created this · 2d ago</div>
-              <div className="ia-row"><span className="ia-dot" /> Celia commented · 14h ago</div>
-              <div className="ia-row"><span className="ia-dot" /> Status changed · 2h ago</div>
+          {createdRel ? (
+            <div className="insp-section">
+              <div className="insp-label">Activity</div>
+              <div className="insp-activity">
+                <div className="ia-row"><span className="ia-dot" /> You created this · {createdRel}</div>
+              </div>
             </div>
-          </div>
-
-          <div className="insp-section">
-            <div className="insp-label">AI suggestions</div>
-            <div className="insp-ai">
-              <div className="ia-sug"><I.Sparkles className="icon-xs" /> Schedule 45m focus block Tue 2p</div>
-              <div className="ia-sug"><I.Sparkles className="icon-xs" /> Draft a reply to Celia's thread</div>
-              <div className="ia-sug"><I.Sparkles className="icon-xs" /> Link to Q2 deck note</div>
-            </div>
-          </div>
+          ) : null}
         </div>
 
         <div className="insp-foot">
-          <button className="btn primary"><I.Check className="icon-xs" /> Mark done</button>
-          <button className="btn">Snooze</button>
-          <button className="btn">Move…</button>
+          {canEdit ? (
+            <button className="btn primary" onClick={handleMarkDone}>
+              <I.Check className="icon-xs" /> {data.done ? "Mark active" : "Mark done"}
+            </button>
+          ) : null}
           <div className="spacer" />
-          <button className="btn ghost">Delete</button>
+          {canDelete ? (
+            <button className="btn ghost" onClick={handleDelete}>Delete</button>
+          ) : null}
         </div>
       </div>
     </div>

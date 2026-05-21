@@ -484,7 +484,12 @@ function App() {
         open={paletteOpen} setOpen={setPaletteOpen}
         ctx={{ theme, density, emailCollapsed, railCollapsed, runAction }} />
 
-      <window.InspectorV2 item={inspector} onClose={() => setInspector(null)} />
+      <window.InspectorV2
+        item={inspector}
+        cardEdits={cardEdits}
+        onClose={() => setInspector(null)}
+        onEdit={onCardEdit}
+        onDelete={onDeleteTask} />
 
       {tweaksOpen ? (
         <div className="tweaks-panel">
