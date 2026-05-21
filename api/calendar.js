@@ -17,17 +17,26 @@
 const { DAVClient } = require("tsdav");
 const ICAL = require("ical.js");
 
-function weekBounds(now = new Date()) {
-  const d = new Date(now);
-  const dow = d.getDay(); // 0=Sun..6=Sat
+function weekBounds(now = new Date(), anchor = null) {
+  // anchor is a Date pointing at any day within the target week. When null,
+  // uses `now` (current week). Lets the client request prev/next weeks via
+  // ?week=YYYY-MM-DD.
+  const base = anchor ? new Date(anchor) : new Date(now);
+  const dow = base.getDay(); // 0=Sun..6=Sat
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + mondayOffset);
+  const monday = new Date(base);
+  monday.setDate(base.getDate() + mondayOffset);
   monday.setHours(0, 0, 0, 0);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
-  const todayIdx = ((dow + 6) % 7); // 0=Mon..6=Sun
+  // todayIdx is relative to *real today*, not the requested week. -1 if today
+  // falls outside the requested week.
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const dayMs = 24 * 3600 * 1000;
+  const diff = Math.round((today - monday) / dayMs);
+  const todayIdx = diff >= 0 && diff <= 6 ? diff : -1;
   return { monday, sunday, todayIdx };
 }
 
@@ -65,7 +74,16 @@ module.exports = async (req, res) => {
 
     await client.login();
     const calendars = await client.fetchCalendars();
-    const { monday, sunday, todayIdx } = weekBounds();
+
+    // Parse ?week=YYYY-MM-DD if provided. Any day inside the target week
+    // works; weekBounds snaps to that Monday–Sunday.
+    let anchor = null;
+    const weekParam = req.query && req.query.week;
+    if (weekParam && /^\d{4}-\d{2}-\d{2}$/.test(String(weekParam))) {
+      anchor = new Date(String(weekParam) + "T12:00:00Z");
+      if (isNaN(anchor.getTime())) anchor = null;
+    }
+    const { monday, sunday, todayIdx } = weekBounds(new Date(), anchor);
 
     const events = [];
     for (const cal of calendars) {
