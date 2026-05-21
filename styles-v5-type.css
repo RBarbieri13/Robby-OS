@@ -71,32 +71,6 @@ body {
   color: var(--text-1);
 }
 
-/* ─── Display tokens ─── */
-.t-display {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-style: italic;
-  font-size: var(--fs-display);
-  line-height: var(--lh-tight);
-  letter-spacing: var(--ls-display);
-}
-.t-stat-l {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: var(--fs-stat-l);
-  line-height: var(--lh-tight);
-  letter-spacing: var(--ls-display);
-  font-feature-settings: "tnum", "lnum";
-}
-.t-stat-m {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: var(--fs-stat-m);
-  line-height: var(--lh-tight);
-  letter-spacing: -0.02em;
-  font-feature-settings: "tnum", "lnum";
-}
-
 /* Project card big number → Instrument Serif (higher specificity to beat v2) */
 .proj-hero .ph-stat,
 .ph-stat {
@@ -132,12 +106,6 @@ body {
   font-weight: 600;
   font-feature-settings: "tnum";
 }
-.ph-footer, .ph-foot, .ph-sub {
-  font-size: 9.5px !important;
-  letter-spacing: 0.08em !important;
-  font-weight: 600 !important;
-}
-
 /* AI insights strip */
 .insights-badge span:first-of-type {
   font-family: var(--font-display) !important;
@@ -165,37 +133,9 @@ body {
   font-feature-settings: "tnum", "lnum" !important;
 }
 
-/* ─── Eyebrow / micro labels ─── */
-.cap {
-  font-size: var(--fs-mini);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--ls-cap-tight);
-  text-transform: uppercase;
-  color: var(--text-3);
-  font-feature-settings: var(--ff-caps);
-}
-.cap-tight {
-  font-size: 9px;
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-
 /* ─── Sharpen existing pane/card heads ─── */
 .pane-head .title { letter-spacing: -0.006em; font-weight: 650; }
 .pane-head .badge { letter-spacing: 0.055em; font-feature-settings: var(--ff-caps); }
-
-.pc-name {
-  font-size: 13px !important;
-  font-weight: 650 !important;
-  letter-spacing: -0.01em !important;
-}
-.pc-stat-label {
-  font-size: 9.5px !important;
-  letter-spacing: 0.12em !important;
-  font-weight: 700 !important;
-}
 
 /* Task / note / card subject */
 .title-text {
@@ -232,18 +172,6 @@ body {
   font-weight: 500 !important;
   color: var(--text-4);
 }
-.ei-subject {
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.006em !important;
-  line-height: 1.32 !important;
-}
-.ei-snippet, .ei-preview {
-  font-size: 11px !important;
-  line-height: 1.42 !important;
-  color: var(--text-3);
-  font-weight: 400 !important;
-}
 .ei-time {
   font-family: var(--font-mono);
   font-size: 10px !important;
@@ -271,24 +199,6 @@ body {
   font-weight: 400;
   font-size: 18px;
   letter-spacing: -0.015em;
-}
-
-/* Subbar toolbar labels — tighter */
-.toolbar .seg, .toolbar .chip, .sub-bar .chip {
-  letter-spacing: -0.002em;
-}
-
-/* Status bar — slightly looser for small text */
-.status-bar, .status-bar * {
-  font-feature-settings: var(--ff-ui);
-}
-.status-bar .sb-grp {
-  letter-spacing: 0.004em;
-}
-
-/* ─── Richer hierarchy: dim meta ─── */
-.meta, .tk-meta, .em-time {
-  color: var(--text-4);
 }
 
 /* ─── Light-mode font smoothing nudge ─── */

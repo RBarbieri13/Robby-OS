@@ -987,6 +987,25 @@ textarea:focus-visible,
   letter-spacing: 0.01em;
 }
 
+/* ───────── Tabular numerics on every counting surface ─────────────
+   Typography contract item #2. Addresses sidebar nav counts, status
+   bar clock + counters, and the project filter chips that show open
+   counts. */
+.side-item .count,
+.side-item .badge,
+.side-proj .count {
+  font-variant-numeric: tabular-nums;
+}
+.sb-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+.statusbar .sb-group b,
+.statusbar .sb-sub {
+  font-variant-numeric: tabular-nums;
+}
+
 
 /* ───────── Inspector/palette: soften scrim on light bg ───────── */
 [data-theme="light"] .inspector-scrim,

@@ -351,14 +351,6 @@ body {
   overflow: hidden; margin-left: 2px;
 }
 .tf-bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
-.tf-spacer { flex: 1; }
-.tf-flag {
-  font-size: 8.5px; font-weight: 800; letter-spacing: 0.12em;
-  padding: 1px 5px; border-radius: 3px;
-}
-.tf-flag.overdue { background: var(--p-high); color: #fff; }
-.tf-flag.soon    { background: var(--p-med);  color: #1a1a1a; }
-
 /* Avatar chips — 2-letter initials */
 .avatar-xs {
   display: inline-flex; align-items: center; justify-content: center;
