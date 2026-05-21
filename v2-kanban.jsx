@@ -134,7 +134,7 @@ function TitleEditor({ value, onCommit, onClose }) {
 
 // ───────────── TaskCard — compact by default, expand for detail ─────────────
 
-function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInspect }) {
+function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInspect, onDelete }) {
   const weekLetters = ["M","T","W","T","F","S","S"];
   const pct = t.subs ? (t.subs.done / t.subs.total) : null;
   const urgencyClass = t.overdue ? "over" : t.soon ? "soon" : t.priority === "high" ? "hi" : t.priority === "med" ? "md" : "lo";
@@ -153,7 +153,7 @@ function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInsp
          aria-label={"Open task: " + (t.title || "(untitled)")}
          onClick={(e) => {
            // Card body → Inspector (unless click landed on an interactive el)
-           if (e.target.closest(".tc-edit, .tcard-expand, .checkbox")) return;
+           if (e.target.closest(".tc-edit, .tcard-expand, .tcard-del, .checkbox")) return;
            onInspect?.();
          }}
          onKeyDown={(e) => {
@@ -161,6 +161,10 @@ function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInsp
            if (e.key === "Enter" || e.key === " ") {
              e.preventDefault();
              onInspect?.();
+           }
+           if (onDelete && (e.key === "Delete" || (e.key === "Backspace" && e.metaKey))) {
+             e.preventDefault();
+             onDelete();
            }
          }}>
       <div className="tcard-rail" />
@@ -184,6 +188,14 @@ function TaskCard({ t, accent, project, expanded, onToggleExpand, onEdit, onInsp
             {t.title}
           </span>
 
+          {onDelete ? (
+            <button className="tcard-del tcard-expand"
+                    aria-label="Delete task"
+                    title="Delete (Del)"
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+              <I.X className="icon-xs" />
+            </button>
+          ) : null}
           <button className="tcard-expand"
                   aria-label={expanded ? "Collapse details" : "Expand details"}
                   title={expanded ? "Collapse details" : "Expand details"}
@@ -335,19 +347,20 @@ function GoalCard({ g, accent, hero }) {
   );
 }
 
-function CardFor({ row, item, accent, isHero, project, expanded, onToggleExpand, onEdit, onInspect }) {
+function CardFor({ row, item, accent, isHero, project, expanded, onToggleExpand, onEdit, onInspect, onDelete }) {
   if (row === "tasks")  return <TaskCard t={item} accent={accent} project={project}
                                          expanded={expanded}
                                          onToggleExpand={onToggleExpand}
                                          onEdit={onEdit}
-                                         onInspect={onInspect} />;
+                                         onInspect={onInspect}
+                                         onDelete={onDelete} />;
   if (row === "notes")  return <NoteCard  n={item} accent={accent} project={project} />;
   if (row === "events") return <EventCard e={item} accent={accent} project={project} />;
   if (row === "goals")  return <GoalCard  g={item} accent={accent} hero={isHero} project={project} />;
   return null;
 }
 
-function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder, userTasks }) {
+function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder, userTasks, onDeleteTask }) {
   const { PROJECTS, TASKS, NOTES, EVENTS_ROW, GOALS } = window.DATA;
   // Merge synthetic tasks with user-added tasks (from localStorage via App).
   // User-added tasks appear FIRST in each project column so they're visible
@@ -610,6 +623,7 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
                                   onToggleExpand={() => toggleExpandCard?.(item.id)}
                                   onEdit={(field, value) => onCardEdit?.(item.id, field, value)}
                                   onInspect={() => onOpenCard?.({ row: row.id, data: mergedItem, project: p })}
+                                  onDelete={mergedItem.userAdded ? () => onDeleteTask?.(item.id) : null}
                                 />
                               </div>
                             );

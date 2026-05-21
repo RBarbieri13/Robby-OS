@@ -118,6 +118,22 @@ function App() {
     setUserTasks(prev => ({ ...prev, [pid]: [newTask, ...(prev[pid] || [])] }));
   }, []);
 
+  const onDeleteTask = React.useCallback((id) => {
+    // Removes a user-added task by id. Synthetic tasks (from data.jsx)
+    // can't be deleted via this path — those need a tombstone set, which
+    // we'll add when the user actually needs it.
+    setUserTasks(prev => {
+      const next = {};
+      let changed = false;
+      for (const pid of Object.keys(prev)) {
+        const remaining = (prev[pid] || []).filter(t => t.id !== id);
+        if (remaining.length !== (prev[pid] || []).length) changed = true;
+        if (remaining.length) next[pid] = remaining;
+      }
+      return changed ? next : prev;
+    });
+  }, []);
+
   const onCardEdit = React.useCallback((id, field, value) => {
     setCardEdits(prev => {
       const prior = prev[id] || {};
@@ -419,7 +435,8 @@ function App() {
               toggleExpandCard={toggleExpandCard}
               cardOrder={cardOrder}
               onReorder={onReorderCards}
-              userTasks={userTasks} />
+              userTasks={userTasks}
+              onDeleteTask={onDeleteTask} />
 
             {/* Kanban ↔ Agenda — horizontal resizer */}
             <div className="resizer resizer-horizontal"
