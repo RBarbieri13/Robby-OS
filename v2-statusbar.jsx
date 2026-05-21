@@ -4,9 +4,33 @@
 function StatusBar({ density, setDensity, onOpenPalette }) {
   const { ACCOUNTS, TASKS } = window.DATA;
   const [now, setNow] = React.useState(() => new Date());
+  const [health, setHealth] = React.useState(null); // {overall, subsystems, ...}
+  const [healthError, setHealthError] = React.useState(false);
+  const [lastSyncAt, setLastSyncAt] = React.useState(null);
+
   React.useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(id);
+  }, []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function probe() {
+      try {
+        const r = await fetch("/api/health", { cache: "no-store" });
+        const j = await r.json();
+        if (cancelled) return;
+        setHealth(j);
+        setHealthError(false);
+        setLastSyncAt(new Date());
+      } catch (_) {
+        if (cancelled) return;
+        setHealthError(true);
+      }
+    }
+    probe();
+    const id = setInterval(probe, 60000);
+    return () => { cancelled = true; clearInterval(id); };
   }, []);
 
   const openTasks = Object.values(TASKS).flat().filter(t => !t.done).length;
@@ -14,14 +38,29 @@ function StatusBar({ density, setDensity, onOpenPalette }) {
 
   const hhmm = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
+  const overall = healthError ? "down" : (health ? health.overall : null);
+  const dotClass = overall === "ok" ? "ok" : overall === "degraded" ? "warn" : overall === "down" ? "err" : "";
+  const statusLabel = overall === "ok" ? "Synced" : overall === "degraded" ? "Degraded" : overall === "down" ? "Offline" : "Syncing";
+  const lastSyncLabel = lastSyncAt
+    ? (() => {
+        const s = Math.max(0, Math.round((now - lastSyncAt) / 1000));
+        if (s < 60) return `last: ${s}s ago`;
+        const m = Math.round(s / 60);
+        return `last: ${m}m ago`;
+      })()
+    : "last: —";
+  const tooltip = health
+    ? `Calendar: ${health.subsystems?.calendar?.status} · Mail: ${health.subsystems?.mail?.status}`
+    : healthError ? "Health probe failed" : "Probing…";
+
   return (
     <div className="statusbar" data-screen-label="Status Bar">
-      <div className="sb-group">
-        <span className="sb-dot ok" />
-        <span className="sb-label">Synced</span>
+      <div className="sb-group" title={tooltip}>
+        <span className={"sb-dot " + dotClass} />
+        <span className="sb-label">{statusLabel}</span>
         <span className="sb-sep">·</span>
         <span className="sb-label">{ACCOUNTS.length} accounts</span>
-        <span className="sb-sub">last: 14s ago</span>
+        <span className="sb-sub">{lastSyncLabel}</span>
       </div>
 
       <div className="sb-group">

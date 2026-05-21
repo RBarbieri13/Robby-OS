@@ -2786,3 +2786,11 @@ body.body-row-resize * {
 .app:not(.rail-collapsed) {
   grid-template-columns: minmax(var(--rail-w-collapsed, 52px), auto) 6px 1fr;
 }
+
+/* Status bar dot states for /api/health subsystem reporting. .ok already
+   exists (sage); warn/err added so the sync indicator reflects calendar
+   and mail health honestly. */
+.sb-dot.warn { background: #c8923a; animation: none; box-shadow: none; }
+.sb-dot.err  { background: #a43a2a; animation: none; box-shadow: none; }
+[data-theme="light"] .sb-dot.warn { background: #c8923a; }
+[data-theme="light"] .sb-dot.err  { background: #a43a2a; }
