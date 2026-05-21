@@ -48,7 +48,39 @@ function AcctMark({ id, size = 18 }) {
 }
 
 function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
-  const { ACCOUNTS, EMAILS } = window.DATA;
+  // Default to synthetic data so the rail renders instantly on cold load;
+  // /api/mail fetch hydrates / replaces in the background. Mirrors the
+  // calendar warm-start pattern in v2-agenda.jsx.
+  const SYNTH = window.DATA;
+  const [ACCOUNTS, setACCOUNTS] = React.useState(SYNTH.ACCOUNTS);
+  const [EMAILS,   setEMAILS]   = React.useState(SYNTH.EMAILS);
+  const [mailLoadState, setMailLoadState] = React.useState("stub"); // stub | live | error
+  const [mailError, setMailError] = React.useState(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const r = await fetch("/api/mail", { cache: "no-store" });
+        const j = await r.json();
+        if (cancelled) return;
+        if (j.accounts && j.emails) {
+          setACCOUNTS(j.accounts);
+          setEMAILS(j.emails);
+          setMailLoadState(j.loadState || "live");
+          setMailError(null);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setMailLoadState("error");
+        setMailError((err && err.message) ? err.message : String(err));
+      }
+    }
+    load();
+    const id = setInterval(load, 120000); // 2 min
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
   const [activeAccts, setActiveAccts] = React.useState(["gmail","outlook","icloud"]);
   const [allAccounts, setAllAccounts] = React.useState(true);
   const [openGroups, setOpenGroups] = React.useState(["urgent","reply","updates"]);
@@ -103,7 +135,11 @@ function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
         <I.Grip className="grip icon-sm" />
         <I.Mail className="icon-sm" style={{ color: "var(--text-2)" }} />
         <span className="title">Inbox</span>
-        <span className="title-sub">· AI-triaged · {visibleAccts.length} of {ACCOUNTS.length}</span>
+        <span className="title-sub">· AI-triaged · {visibleAccts.length} of {ACCOUNTS.length}
+          {mailLoadState === "live"  ? <span style={{ marginLeft: 6, color: "var(--c-sage-dim, #5e7258)" }}>· live</span> : null}
+          {mailLoadState === "stub"  ? <span style={{ marginLeft: 6, color: "var(--text-3)" }}>· stub</span> : null}
+          {mailLoadState === "error" ? <span style={{ marginLeft: 6, color: "#a43a2a" }} title={mailError || ""}>· mail error</span> : null}
+        </span>
         <div className="spacer" />
         <div className="icons">
           <button className="btn primary" style={{ padding: "4px 10px", fontWeight: 600 }}>
@@ -201,7 +237,18 @@ function EmailRail({ collapsed, setCollapsed, openedEmail, setOpenedEmail }) {
                           + (cat.id === "urgent" ? "urgent " : "")
                           + (isOpen ? "opened " : "")
                           + "sent-" + (m.sentiment || "normal") }
+                       role="button"
+                       tabIndex={0}
+                       aria-expanded={isOpen ? "true" : "false"}
+                       aria-label={"Email from " + m.from + ": " + m.subj}
                        onClick={() => setOpenedEmail?.(isOpen ? null : m.id)}
+                       onKeyDown={(e) => {
+                         if (e.target !== e.currentTarget) return;
+                         if (e.key === "Enter" || e.key === " ") {
+                           e.preventDefault();
+                           setOpenedEmail?.(isOpen ? null : m.id);
+                         }
+                       }}
                        style={{ "--acct-color": m.account.color }}>
                     <span className="ei-acctrail" />
                     <div className="ei-avatar" style={{ "--acct-color": m.account.color }}>
