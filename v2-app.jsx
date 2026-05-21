@@ -267,6 +267,10 @@ function App() {
       if (e.shiftKey && e.key.toLowerCase() === "e") setEmailCollapsed(v => !v);
       if (e.shiftKey && e.key.toLowerCase() === "s") setRailCollapsed(v => !v);
       if (e.shiftKey && e.key.toLowerCase() === "y") setDensity(d => d === "compact" ? "comfortable" : d === "comfortable" ? "roomy" : "compact");
+      if (e.shiftKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        window.dispatchEvent(new Event("robbyos:open-quick-add"));
+      }
       if (e.key.toLowerCase() === "g" && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
         gMode = true; clearTimeout(gTimer); gTimer = setTimeout(() => { gMode = false; }, 900);
         return;

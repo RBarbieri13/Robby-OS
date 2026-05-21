@@ -64,11 +64,13 @@ CSS is layered (load order matters — each sheet refines or overrides the prior
 | Keys | Action |
 |---|---|
 | `⌘K` / `Ctrl+K` | Toggle command palette |
+| `⇧A` | Open Quick Add (task or note) |
 | `⇧D` | Toggle dark/light |
 | `⇧E` | Collapse/expand email rail |
 | `⇧S` | Collapse/expand sidebar |
 | `⇧Y` | Cycle density (compact → comfortable → roomy) |
 | `G` then `C/I/M/A/T/N/L` | Go to Cockpit / Inbox / Mail / Calendar / Tasks / Notes / Goals |
+| `Del` / `⌘⌫` | Delete focused user-added task |
 | `Esc` | Close inspector / opened email / palette |
 
 ## Provenance

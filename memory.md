@@ -126,6 +126,19 @@ expands, SubBar "View" popover opens.
   policy as "untrusted code integration". Either clone manually
   (`git clone --depth 1 https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git`)
   or add a Bash permission rule.
+- **Note body editor.** `onAddNote` files notes with empty `snippet`. A
+  multi-line body input + edit-in-place on NoteCard is the next note
+  improvement. Not blocking — the title alone is useful capture.
+- **Event creation** (calendar). Agenda is read-only. To create events,
+  would need POST → CalDAV → iCloud round-trip via `tsdav.client.createObject()`.
+- **Synthetic task tombstones.** Delete only works on user-added tasks.
+  Synthetic tasks (from `data.jsx`) need a `tombstones: Set<id>` localStorage
+  key to support delete.
+- **Typography contract violations** the auditor flagged but not yet
+  resolved: `Archivo` wordmark face (4th face vs. 3-face contract),
+  `Instrument Serif` on pane-head titles vs. "Inter tracked uppercase"
+  contract, AI Brief badge font conflict between v5-type and theme.
+  All are intentional-looking choices — defer to user judgment.
 
 ## Data layer (as of 2026-05-20)
 
@@ -148,19 +161,74 @@ Client wiring:
 
 ## Persistence model
 
-Four localStorage keys back the cockpit:
+LocalStorage keys back the cockpit:
 
 | Key | Owner | Contents |
 |---|---|---|
 | `robbyOS.ui.v1` | App | view, theme, density, rail/email collapse, projectFilters, collapsedRows, colorBy, showInsights |
 | `robbyOS.layout.v1` | App | railW, emailW, kanbanFrac |
-| `robbyOS.cardEdits.v1` | App | per-card title/due/priority edits |
+| `robbyOS.cardEdits.v1` | App | per-card edits (title, due, priority, done) overlayed on base data |
 | `robbyOS.expandedCards.v1` | App | which cards are open |
 | `robbyOS.cardOrder.v1` | App | per-row per-project ordering |
+| `robbyOS.userTasks.v1` | App | **user-created tasks**, keyed by projectId — net-new items, not edits |
+| `robbyOS.userNotes.v1` | App | **user-created notes**, keyed by projectId |
 | `robbyos.calendar.v1:YYYY-MM-DD` | Agenda | warm-start cache, one key per week |
 
 Deliberately *not* persisted (always reset per session): paletteOpen,
 inspector, openedEmail, tweaksOpen, weekAnchor.
+
+## Quick Add → real CRUD
+
+Topbar Quick Add (`+ Quick add`) is the inline composer. Task / Note
+toggle at the top; Enter submits; Escape cancels. User-added items
+get `userAdded: true` flag, an `id` prefix (`u-` for tasks, `un-`
+for notes), and a `createdAt: ISO` timestamp.
+
+User-added items get a delete affordance:
+- **TaskCard**: × button in the line-1 slot (replaces expand chev)
+- **NoteCard**: × button in the title row
+- **Inspector**: ghost "Delete" button in the footer (tasks only,
+  for now)
+- **Keyboard**: `Del` or `⌘+Backspace` on a focused task card
+
+Synthetic tasks (from `data.jsx`) deliberately cannot be deleted —
+they'd need a tombstone set. The done-toggle works on both via
+`cardEdits` overlay.
+
+## Email → task wiring
+
+Email rail's "Convert to task" rail button (and the "Add as task"
+button in the expanded view) call `onAddTask("✉ <subj>", "personal",
+priorityFromSentiment)`. Sentiment maps:
+- `urgent` / `blocking` → `high`
+- `normal` → `low`
+- everything else → `med`
+
+Once converted, the email's task chip shows "Task" + the rail button
+disables to prevent duplicates.
+
+## Status bar (real)
+
+`/api/health` polled every 60s. Surface state:
+- **ok** — sage dot
+- **degraded** — amber dot (`.sb-dot.warn`)
+- **down** (probe failed) — terracotta dot (`.sb-dot.err`)
+- **syncing** (no response yet) — muted
+
+Tooltip exposes per-subsystem: `Calendar: ok · Mail: stub`.
+"Last: 14s ago" is relative to the actual successful probe.
+
+## Inspector
+
+Pure card detail panel. Mark-done/Mark-active button flips `done` via
+`onCardEdit` (uses `cardEdits` overlay, so it works for both synthetic
+and user-added). Title strikes through when done. Delete button only
+appears for user-added tasks. Inspector reactively merges `cardEdits`
+on every render, so state changes show immediately.
+
+Stripped from inspector this session: fake "Celia commented · 14h ago"
+activity entries, fake AI suggestions, Pin/PopOut/Snooze/Move buttons.
+Honest empty-state beats vapor.
 
 ## Week navigation
 

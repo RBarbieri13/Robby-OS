@@ -52,6 +52,14 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
     }
   }, [addOpen, layoutOpen, notifOpen, viewOpen]);
 
+  // Global keyboard shortcut: ⇧A opens Quick Add. Dispatched from
+  // App-level keydown handler so it doesn't fight with other inputs.
+  React.useEffect(() => {
+    const open = () => setAddOpen(true);
+    window.addEventListener("robbyos:open-quick-add", open);
+    return () => window.removeEventListener("robbyos:open-quick-add", open);
+  }, []);
+
   const stop = (e) => e.stopPropagation();
 
   return (
