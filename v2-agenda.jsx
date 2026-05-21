@@ -26,7 +26,7 @@ function calendarToProject(calName, validProjIds) {
 
 const CAL_CACHE_KEY = "robbyos.calendar.v1";
 
-function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
+function Agenda({ weekLabel, weekIsoDate, projectFilters, onPrev, onNext }) {
   const { PROJECTS, AGENDA_TASKS } = window.DATA;
   const projMap = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
   const projIds = PROJECTS.map(p => p.id);
@@ -39,6 +39,7 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
   const [tasks, setTasks]   = React.useState(AGENDA_TASKS);
 
   // Fetch the real calendar from /api/calendar — initial + every 60s.
+  // Re-fetches whenever weekIsoDate changes (user navigates prev/next).
   // Warm-start: paint the previous response from localStorage immediately so a
   // cold reload isn't a 3s blank week, then refresh in the background.
   React.useEffect(() => {
@@ -57,28 +58,26 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
         return { title: e.title, project, day: dayIdx, start: startHour, end: endHour, allDay: e.allDay, calendar: e.calendar };
       }).filter(e => !e.allDay && e.end > HOURS_START && e.start < HOURS_END);
     }
+
+    // Cache key per-week so prev/next aren't clobbering each other.
+    const cacheKey = CAL_CACHE_KEY + (weekIsoDate ? ":" + weekIsoDate : "");
+    setLoadState("loading");
+    setEvents([]);
     try {
-      const cached = localStorage.getItem(CAL_CACHE_KEY);
+      const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const j = JSON.parse(cached);
-        // Only use cache if it covers the current week.
-        const monday = new Date(j.weekStart);
-        const now = new Date();
-        const dow = now.getDay();
-        const off = dow === 0 ? -6 : 1 - dow;
-        const thisMonday = new Date(now); thisMonday.setDate(now.getDate() + off); thisMonday.setHours(0,0,0,0);
-        if (Math.abs(monday - thisMonday) < 24 * 3600 * 1000) {
-          setApiData(j);
-          const mapped = mapPayload(j);
-          setEvents(mapped);
-          setLoadState(mapped.length ? "live" : "empty");
-        }
+        setApiData(j);
+        const mapped = mapPayload(j);
+        setEvents(mapped);
+        setLoadState(mapped.length ? "live" : "empty");
       }
     } catch (_) { /* cache miss is fine */ }
 
+    const url = weekIsoDate ? `/api/calendar?week=${weekIsoDate}` : "/api/calendar";
     async function load() {
       try {
-        const r = await fetch("/api/calendar", { cache: "no-store" });
+        const r = await fetch(url, { cache: "no-store" });
         const j = await r.json();
         if (cancelled) return;
         if (j.error) {
@@ -91,7 +90,7 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
         setEvents(mapped);
         setLoadState(mapped.length ? "live" : "empty");
         setErrorMsg(null);
-        try { localStorage.setItem(CAL_CACHE_KEY, JSON.stringify(j)); } catch (_) { /* quota */ }
+        try { localStorage.setItem(cacheKey, JSON.stringify(j)); } catch (_) { /* quota */ }
       } catch (err) {
         if (cancelled) return;
         setLoadState("error");
@@ -101,9 +100,10 @@ function Agenda({ weekLabel, projectFilters, onPrev, onNext }) {
     load();
     const id = setInterval(load, 60000);
     return () => { cancelled = true; clearInterval(id); };
-  }, []);
+  }, [weekIsoDate]);
 
-  const today = apiData ? apiData.todayIdx : new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+  // todayIdx can be -1 when the requested week doesn't contain today.
+  const today = apiData ? apiData.todayIdx : (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
   const dates = React.useMemo(() => {
     const base = apiData ? new Date(apiData.weekStart) : (() => {
       const n = new Date();

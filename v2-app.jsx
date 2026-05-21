@@ -255,7 +255,40 @@ function App() {
     ? { gridTemplateRows: `${kanbanFrac * 100}% var(--gutter) 1fr` }
     : { gridTemplateRows: `minmax(260px, ${kanbanPx}px) var(--gutter) minmax(260px, 1fr)` };
 
-  const weekLabel = "Apr 21–27, 2026";
+  // ─── Week navigation ─────────────────────────────────────────────────
+  // weekAnchor is a Date that points anywhere inside the displayed week.
+  // The agenda derives Mon–Sun bounds from it; chevrons shift by 7 days.
+  // Not persisted — always opens on the current week.
+  const [weekAnchor, setWeekAnchor] = React.useState(() => new Date());
+  const weekBounds = React.useMemo(() => {
+    const d = new Date(weekAnchor);
+    const dow = d.getDay();
+    const off = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(d); monday.setDate(d.getDate() + off); monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    return { monday, sunday };
+  }, [weekAnchor]);
+  const weekLabel = React.useMemo(() => {
+    const { monday, sunday } = weekBounds;
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const sameMonth = monday.getMonth() === sunday.getMonth();
+    if (sameMonth) {
+      return `${MONTHS[monday.getMonth()]} ${monday.getDate()}–${sunday.getDate()}, ${monday.getFullYear()}`;
+    }
+    return `${MONTHS[monday.getMonth()]} ${monday.getDate()} – ${MONTHS[sunday.getMonth()]} ${sunday.getDate()}, ${sunday.getFullYear()}`;
+  }, [weekBounds]);
+  const shiftWeek = React.useCallback((deltaDays) => {
+    setWeekAnchor(prev => {
+      const next = new Date(prev);
+      next.setDate(prev.getDate() + deltaDays);
+      return next;
+    });
+  }, []);
+  const goToday = React.useCallback(() => setWeekAnchor(new Date()), []);
+  const weekIsoDate = React.useMemo(() => {
+    const m = weekBounds.monday;
+    return `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,"0")}-${String(m.getDate()).padStart(2,"0")}`;
+  }, [weekBounds]);
 
   // App grid template — sidebar + resizer + main column. Resizer column
   // is fixed 6px wide; sidebar width is dynamic.
@@ -339,7 +372,7 @@ function App() {
             colorBy={colorBy} setColorBy={setColorBy}
             density={density} setDensity={setDensity}
             weekLabel={weekLabel}
-            onPrev={() => {}} onNext={() => {}} onToday={() => {}} />
+            onPrev={() => shiftWeek(-7)} onNext={() => shiftWeek(7)} onToday={goToday} />
         ) : null}
 
         <div className={"workspace " + (emailCollapsed ? "email-collapsed" : "")}
@@ -369,8 +402,9 @@ function App() {
 
             <window.AgendaV2
               weekLabel={weekLabel}
+              weekIsoDate={weekIsoDate}
               projectFilters={projectFilters}
-              onPrev={() => {}} onNext={() => {}} />
+              onPrev={() => shiftWeek(-7)} onNext={() => shiftWeek(7)} />
           </div>
 
           {/* Center ↔ Email rail — vertical resizer (invert: drag left
