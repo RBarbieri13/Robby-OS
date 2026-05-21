@@ -1,7 +1,7 @@
 /* global React, I */
 // Top bar (breadcrumb + search + utilities) and sub bar (week nav + filters).
 
-function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalette, onOpenLayouts, layoutPreset, density, setDensity }) {
+function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalette, onOpenLayouts, layoutPreset, density, setDensity, onAddTask, projects }) {
   const viewLabel = {
     cockpit: cockpitName,
     inbox: "Inbox",
@@ -16,6 +16,27 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
   const [layoutOpen, setLayoutOpen] = React.useState(false);
   const [notifOpen, setNotifOpen]   = React.useState(false);
   const [viewOpen, setViewOpen]     = React.useState(false);
+
+  // Quick Add inline composer state. Captures title + project; on Enter,
+  // calls onAddTask and resets. Project defaults to first in the list.
+  const [addTitle, setAddTitle]     = React.useState("");
+  const [addProject, setAddProject] = React.useState(() => (projects && projects[0]?.id) || "personal");
+  const [addPriority, setAddPriority] = React.useState("med");
+  const addInputRef = React.useRef(null);
+  React.useEffect(() => {
+    if (addOpen && addInputRef.current) {
+      // Focus the title input the moment the popover opens.
+      requestAnimationFrame(() => addInputRef.current?.focus());
+    }
+  }, [addOpen]);
+  const submitAddTask = () => {
+    const v = addTitle.trim();
+    if (!v) return;
+    onAddTask?.(v, addProject, addPriority);
+    setAddTitle("");
+    setAddPriority("med");
+    setAddOpen(false);
+  };
 
   // Close all popovers on outside click
   React.useEffect(() => {
@@ -47,9 +68,10 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
       </div>
 
       <div className="topbar-right">
-        {/* Quick add — grouped split button */}
+        {/* Quick add — grouped split button. Primary opens the composer
+            and focuses the input; caret toggles. */}
         <div className="split-btn" onClick={stop}>
-          <button className="sb-primary" onClick={() => setAddOpen(false)}>
+          <button className="sb-primary" onClick={() => setAddOpen(true)}>
             <I.Plus className="icon-sm" />
             Quick add
           </button>
@@ -57,14 +79,77 @@ function TopBar({ view, theme, setTheme, cockpitName, onOpenTweaks, onOpenPalett
             <I.ChevD className="icon-xs" />
           </button>
           {addOpen ? (
-            <div className="tb-pop">
-              <div className="tbp-section">Create new</div>
-              <div className="tbp-row"><I.CheckSquare className="icon-sm" /> Task <span className="kbd">T</span></div>
-              <div className="tbp-row"><I.FileText className="icon-sm" /> Note <span className="kbd">N</span></div>
-              <div className="tbp-row"><I.Calendar className="icon-sm" /> Event <span className="kbd">E</span></div>
-              <div className="tbp-row"><I.Target className="icon-sm" /> Goal</div>
-              <div className="tbp-sep" />
-              <div className="tbp-row"><I.Sparkles className="icon-sm" style={{ color: "var(--ai)" }} /> Ask Cockpit…</div>
+            <div className="tb-pop" style={{ minWidth: 320 }}>
+              <div className="tbp-section">New task</div>
+              <div style={{ padding: "6px 10px 10px" }}>
+                <input
+                  ref={addInputRef}
+                  className="qa-input"
+                  type="text"
+                  placeholder="What needs to happen?"
+                  value={addTitle}
+                  onChange={(e) => setAddTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); submitAddTask(); }
+                    if (e.key === "Escape") { setAddOpen(false); }
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "8px 10px",
+                    border: "2px solid var(--hair-2, #d6d2c4)",
+                    borderRadius: 6,
+                    fontFamily: "inherit",
+                    fontSize: 13,
+                    background: "var(--bg-1, #fff)",
+                    color: "var(--text-1, #1b1c19)",
+                  }}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
+                  <select
+                    value={addProject}
+                    onChange={(e) => setAddProject(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      border: "2px solid var(--hair-2, #d6d2c4)",
+                      borderRadius: 6,
+                      fontFamily: "inherit",
+                      fontSize: 12,
+                      background: "var(--bg-1, #fff)",
+                      color: "var(--text-1, #1b1c19)",
+                    }}
+                    aria-label="Project"
+                  >
+                    {(projects || []).map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={addPriority}
+                    onChange={(e) => setAddPriority(e.target.value)}
+                    style={{
+                      padding: "6px 8px",
+                      border: "2px solid var(--hair-2, #d6d2c4)",
+                      borderRadius: 6,
+                      fontFamily: "inherit",
+                      fontSize: 12,
+                      background: "var(--bg-1, #fff)",
+                      color: "var(--text-1, #1b1c19)",
+                    }}
+                    aria-label="Priority"
+                  >
+                    <option value="high">High</option>
+                    <option value="med">Med</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, marginTop: 10 }}>
+                  <button className="btn" onClick={() => setAddOpen(false)} style={{ padding: "4px 10px", fontSize: 12 }}>Cancel</button>
+                  <button className="btn primary" onClick={submitAddTask} disabled={!addTitle.trim()} style={{ padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
+                    Add <span className="kbd" style={{ marginLeft: 4 }}>↵</span>
+                  </button>
+                </div>
+              </div>
             </div>
           ) : null}
         </div>

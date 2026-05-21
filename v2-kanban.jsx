@@ -347,13 +347,24 @@ function CardFor({ row, item, accent, isHero, project, expanded, onToggleExpand,
   return null;
 }
 
-function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder }) {
+function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOpenCard, cardEdits, onCardEdit, expandedCards, toggleExpandCard, cardOrder, onReorder, userTasks }) {
   const { PROJECTS, TASKS, NOTES, EVENTS_ROW, GOALS } = window.DATA;
-  const sources = { tasks: TASKS, notes: NOTES, events: EVENTS_ROW, goals: GOALS };
+  // Merge synthetic tasks with user-added tasks (from localStorage via App).
+  // User-added tasks appear FIRST in each project column so they're visible
+  // immediately after creation.
+  const mergedTasks = React.useMemo(() => {
+    if (!userTasks) return TASKS;
+    const out = { ...TASKS };
+    for (const pid of Object.keys(userTasks)) {
+      out[pid] = [...(userTasks[pid] || []), ...(TASKS[pid] || [])];
+    }
+    return out;
+  }, [userTasks, TASKS]);
+  const sources = { tasks: mergedTasks, notes: NOTES, events: EVENTS_ROW, goals: GOALS };
   const projects = PROJECTS.filter(p => projectFilters.includes(p.id));
   const cols = projects.length;
 
-  const openTasks = (pid) => (TASKS[pid] || []).filter(t => !t.done).length;
+  const openTasks = (pid) => (mergedTasks[pid] || []).filter(t => !t.done).length;
 
   // Drag-and-drop state. dragging identifies the source card; dropHint
   // identifies where the drop indicator should render (target card id +
@@ -473,8 +484,8 @@ function Kanban({ projectFilters, colorBy, collapsedRows, setCollapsedRows, onOp
         <div className="kgrid-head" style={{ "--cols": cols }}>
           <div className="kh-row-spacer" />
           {projects.map(p => {
-            const tCount    = (TASKS[p.id]      || []).length;
-            const tOpen     = (TASKS[p.id]      || []).filter(t => !t.done).length;
+            const tCount    = (mergedTasks[p.id]      || []).length;
+            const tOpen     = (mergedTasks[p.id]      || []).filter(t => !t.done).length;
             const eCount    = (EVENTS_ROW[p.id] || []).length;
             const nCount    = (NOTES[p.id]      || []).length;
             const sp        = p.spark || [];

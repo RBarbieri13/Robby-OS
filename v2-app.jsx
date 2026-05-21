@@ -80,6 +80,15 @@ function App() {
     catch (_) { return {}; }
   });
 
+  // User-added tasks, keyed by projectId. Stored separately from cardEdits
+  // because the cards don't exist in window.DATA yet — they're net-new.
+  // Shape: { [projectId]: [{ id, title, priority, due?, done, createdAt }] }
+  const LS_USER_TASKS = "robbyOS.userTasks.v1";
+  const [userTasks, setUserTasks] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(LS_USER_TASKS) || "{}"); }
+    catch (_) { return {}; }
+  });
+
   React.useEffect(() => {
     try { localStorage.setItem(LS_EDITS, JSON.stringify(cardEdits)); } catch (_) {}
   }, [cardEdits]);
@@ -89,6 +98,25 @@ function App() {
   React.useEffect(() => {
     try { localStorage.setItem(LS_ORDER, JSON.stringify(cardOrder)); } catch (_) {}
   }, [cardOrder]);
+  React.useEffect(() => {
+    try { localStorage.setItem(LS_USER_TASKS, JSON.stringify(userTasks)); } catch (_) {}
+  }, [userTasks]);
+
+  const onAddTask = React.useCallback((title, projectId, priority) => {
+    const t = (title || "").trim();
+    if (!t) return;
+    const pid = projectId || "personal";
+    const id = "u-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+    const newTask = {
+      id,
+      title: t,
+      priority: priority || "med",
+      done: false,
+      createdAt: new Date().toISOString(),
+      userAdded: true,
+    };
+    setUserTasks(prev => ({ ...prev, [pid]: [newTask, ...(prev[pid] || [])] }));
+  }, []);
 
   const onCardEdit = React.useCallback((id, field, value) => {
     setCardEdits(prev => {
@@ -362,6 +390,8 @@ function App() {
           cockpitName={edits.cockpitName}
           onOpenTweaks={() => setTweaksOpen(o => !o)}
           onOpenPalette={() => setPaletteOpen(true)}
+          onAddTask={onAddTask}
+          projects={window.DATA.PROJECTS}
           density={density} setDensity={setDensity} />
 
         {/* SubBar (date nav + Week/Day/Month + View) has been folded into
@@ -388,7 +418,8 @@ function App() {
               expandedCards={expandedCards}
               toggleExpandCard={toggleExpandCard}
               cardOrder={cardOrder}
-              onReorder={onReorderCards} />
+              onReorder={onReorderCards}
+              userTasks={userTasks} />
 
             {/* Kanban ↔ Agenda — horizontal resizer */}
             <div className="resizer resizer-horizontal"
